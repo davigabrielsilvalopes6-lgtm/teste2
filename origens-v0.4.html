@@ -50,6 +50,123 @@ button{cursor:pointer;margin-top:8px;background:var(--ac);color:#06202a;font-wei
 #inventory-cursor{position:fixed;z-index:42;display:flex;width:48px;height:48px;align-items:center;justify-content:center;border:2px solid #ffe28a;background:rgba(7,19,26,.94);pointer-events:none;box-sizing:border-box}
 @media(max-width:440px){#inventory-overlay{padding:6px 6px 72px}#inventory-panel{padding:10px}.inventory-heading h2{font-size:16px}#inventory-grid{gap:4px}.inv-slot .item-quantity{font-size:12px}}
 
+
+/* Inventory appearance only: warm pixel borders and a material inspection card. */
+#inventory-overlay {
+  background: rgba(7, 17, 15, .24);
+}
+#inventory-panel {
+  --inventory-cell: clamp(40px, 9.5vh, 68px);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, calc(var(--inventory-cell) * 4 + 24px)) minmax(164px, 1fr);
+  grid-template-areas: "heading heading" "slots details" "help help" "legend legend" "pending pending" "status status";
+  align-content: start;
+  align-items: start;
+  gap: 10px 20px;
+  width: min(calc(var(--inventory-cell) * 4 + 260px), 100%);
+  max-height: 100%;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: #fff7dc;
+  box-shadow: none;
+  scrollbar-color: #d7a64d #18291e;
+}
+#inventory-panel .inventory-heading {
+  grid-area: heading;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 2px solid #fff2bb;
+  outline: 2px solid #211b15;
+  background: #ffce48;
+  color: #fff7db;
+  box-shadow: inset 0 -4px #d59635, inset 0 3px #ffe58b, 3px 4px #152017;
+  text-shadow: 1px 2px #55361e;
+}
+.inventory-tab {display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;}
+.inventory-kicker {display: block; margin-bottom: 2px; font-size: 9px; font-weight: 900; letter-spacing: 2px; color: #735028; text-shadow: none;}
+#inventory-panel .inventory-heading h2 {margin: 0; font-size: 17px; font-weight: 900; letter-spacing: 2px; color: #fff9e0; text-shadow: 2px 2px #54341d;}
+.inventory-bag {position: relative; flex: 0 0 28px; width: 28px; height: 25px; background: #a57636; box-shadow: inset 3px 0 #ca9b4c, inset -3px -3px #765026; clip-path: polygon(6px 0,22px 0,22px 4px,26px 4px,26px 10px,28px 10px,28px 25px,0 25px,0 10px,2px 10px,2px 4px,6px 4px);}
+.inventory-bag:before {content: ""; position: absolute; top: 8px; left: 4px; width: 20px; height: 4px; background: #60421f; box-shadow: 0 8px #d3a653;}
+.inventory-bag:after {content: ""; position: absolute; left: 12px; top: 6px; width: 4px; height: 17px; background: #efca76; box-shadow: 1px 0 #795128;}
+.inventory-space {display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 8px; font-weight: 900; letter-spacing: 1px; color: #694522; text-shadow: none;}
+#inventory-capacity {font-size: 14px; color: #fff7d9; text-shadow: 1px 2px #58381f;}
+#inventory-close {width: 27px; height: 27px; padding: 0; margin: 0; background: #edb33c; border: 2px solid #684723; box-shadow: inset 1px 1px #fff1a3; color: #fff9dd; font-size: 19px; line-height: 20px; text-shadow: 1px 1px #57371e;}
+#inventory-close:hover {background: #ffe798;}
+#inventory-grid {grid-area: slots; gap: 8px; padding: 0;}
+#inventory-panel .inv-slot {
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: none;
+  border: 2px solid #141c14;
+  background: rgba(13, 31, 21, .74);
+  box-shadow: inset 0 0 0 2px #dfbd77, inset 0 0 0 4px #443c26, 2px 3px #101a13;
+  overflow: visible;
+}
+#inventory-panel .inv-slot.is-occupied {background: rgba(27, 45, 29, .94); border-color: #141c14;}
+#inventory-panel .inv-slot:hover {background: rgba(62, 78, 40, .94);}
+#inventory-panel .inv-slot.is-selected {border-color: #f9f5d9; box-shadow: inset 0 0 0 2px #e4bd65, inset 0 0 0 4px #66502e, 2px 3px #101a13;}
+#inventory-panel .inv-slot.is-selected:after {content: ""; position: absolute; inset: -6px; border: 2px solid #fffce3; pointer-events: none; clip-path: polygon(0 0,12px 0,12px 3px,3px 3px,3px 12px,0 12px,0 0,100% 0,100% 12px,calc(100% - 3px) 12px,calc(100% - 3px) 3px,calc(100% - 12px) 3px,calc(100% - 12px) 0,100% 0,100% 100%,calc(100% - 12px) 100%,calc(100% - 12px) calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) calc(100% - 12px),100% calc(100% - 12px),100% 100%,0 100%,0 calc(100% - 12px),3px calc(100% - 12px),3px calc(100% - 3px),12px calc(100% - 3px),12px 100%,0 100%);}
+#inventory-panel .inv-slot .slot-key {left: 6px; top: 5px; font-size: 9px; color: #cfbd8c; text-shadow: 1px 1px #0a120d;}
+#inventory-panel .inv-slot .item-quantity {right: 5px; bottom: 5px; padding: 0; font-size: 13px; background: none; color: #fffbe6; text-shadow: 2px 2px #08120b, -1px -1px #08120b;}
+#inventory-panel .inv-slot .item-icon {transform: scale(1.12); filter: drop-shadow(2px 2px #0c160e);}
+.inventory-details {grid-area: details; align-self: start; min-width: 0; box-sizing: border-box; padding: 16px 12px 13px; border: 2px solid #f9e5a1; outline: 2px solid #342718; background: #ffd04b; box-shadow: inset -3px -4px #e9a83b, inset 2px 2px #ffe58a, 3px 4px #182117; text-align: center;}
+.inventory-detail-emblem {display: flex; align-items: center; justify-content: center; height: 58px; margin-bottom: 8px;}
+.inventory-detail-emblem .item-icon {transform: scale(1.8); filter: drop-shadow(2px 2px #ac772e);}
+.inventory-detail-emblem .inventory-bag {transform: scale(1.7);}
+#inventory-detail-name {margin: 0 0 18px; min-height: 30px; font-size: 15px; font-weight: 900; letter-spacing: 1px; line-height: 1.35; color: #fff9df; text-shadow: 2px 2px #694120; overflow-wrap: anywhere;}
+.inventory-detail-category {margin: 0 0 13px; color: #fff8dc; font-size: 10px; font-weight: 900; letter-spacing: 1px; text-shadow: 1px 2px #66401e;}
+.inventory-detail-row {display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 8px; color: #6d4824; font-size: 9px; font-weight: 900; letter-spacing: 1px;}
+.inventory-detail-row strong {font-size: 13px; letter-spacing: 0; color: #fff9df; text-shadow: 1px 2px #684322;}
+#inventory-detail-description {margin: 15px 0 0; padding-top: 10px; border-top: 2px solid #e6b442; color: #68451f; font-size: 10px; line-height: 1.6;}
+#inventory-panel .inventory-help {grid-area: help; margin: 0; color: #fff9df; font-size: 10px; text-shadow: 1px 2px #111d15;}
+#inventory-panel .inventory-legend {grid-area: legend; margin: 0; color: #dfd3a8; font-size: 10px; text-shadow: 1px 2px #111d15;}
+#inventory-panel #inventory-pending {grid-area: pending; margin: 0; border: 2px solid #c6a560; background: rgba(18, 34, 23, .96);}
+#inventory-panel #inventory-pending-text {color: #fff0bc;}
+#inventory-panel #inventory-claim-pending {background: #f4c354; border-color: #78592a; color: #392d19;}
+#inventory-panel #inventory-status {grid-area: status; margin: 0; min-height: 26px; padding: 6px 8px; box-sizing: border-box; border-left: 3px solid #d9b75d; background: rgba(13, 28, 20, .85); font-size: 10px; line-height: 1.4; color: #fff1be;}
+#inventory-overlay:not([hidden]) ~ #inventory-tooltip {border-color: #e6bd69; background: #15291d; color: #fff7db; box-shadow: 2px 3px #0d1b13; font-size: 11px;}
+#inventory-overlay:not([hidden]) ~ #inventory-cursor {border-color: #efcf88; background: #21351f; box-shadow: 2px 3px #0d1b13;}
+@media (max-width: 520px) {
+  #inventory-panel {grid-template-columns: minmax(0, 1fr) minmax(134px, .9fr); column-gap: 12px; width: 100%; padding: 6px;}
+  #inventory-panel .inventory-heading {gap: 8px;}
+  #inventory-panel .inventory-heading h2 {font-size: 14px;}
+  .inventory-space {font-size: 7px;}
+  .inventory-details {padding: 12px 8px;}
+  #inventory-detail-name {font-size: 12px;}
+  #inventory-panel .inv-slot .item-quantity {right: 4px; bottom: 4px; font-size: 11px;}
+}
+@media (max-width: 390px) {
+  #inventory-panel {grid-template-columns: minmax(0, 1fr); grid-template-areas: "heading" "slots" "details" "help" "legend" "pending" "status"; max-width: 300px;}
+  .inventory-details {display: grid; grid-template-columns: 56px 1fr; column-gap: 10px; text-align: left;}
+  .inventory-detail-emblem {grid-row: 1 / 5; height: 100%; min-height: 80px; margin: 0;}
+  #inventory-detail-name {min-height: 0; margin-bottom: 5px;}
+  .inventory-detail-category {margin-bottom: 2px;}
+  .inventory-detail-row {justify-content: flex-start; margin-top: 4px;}
+  #inventory-detail-description {grid-column: 1 / -1; margin-top: 8px;}
+}
+
+
+@media (max-height: 600px) {
+  #inventory-overlay {padding-bottom: 108px;}
+  #inventory-panel {row-gap: 6px;}
+  #inventory-panel .inventory-heading {min-height: 50px; padding-top: 6px; padding-bottom: 6px;}
+  .inventory-details {padding: 12px 10px;}
+  .inventory-detail-emblem {height: 38px; margin-bottom: 4px;}
+  .inventory-detail-emblem .item-icon {transform: scale(1.45);}
+  #inventory-detail-name {font-size: 14px; min-height: 20px; margin-bottom: 10px;}
+  .inventory-detail-category {margin-bottom: 8px;}
+  .inventory-detail-row {margin-top: 4px; font-size: 8px;}
+  .inventory-detail-row strong {font-size: 11px;}
+  #inventory-detail-description {margin-top: 10px; padding-top: 8px; font-size: 9px; line-height: 1.45;}
+  #inventory-panel .inventory-help, #inventory-panel .inventory-legend {font-size: 9px; line-height: 1.3;}
+  #inventory-panel #inventory-status {min-height: 22px; padding: 4px 6px; font-size: 9px;}
+}
+
 </style></head><body><div id=w><canvas id=c width=960 height=540></canvas><div id=m><div class=b><h1>ORIGENS</h1><div style="font-size:12px;opacity:.8">Arquipélago procedural · inventário e atalhos · v0.4</div>
 <label>Nome do mundo</label><input id=nm placeholder="Mundo 1">
 <label>Seed (texto ou número)</label><div style="display:flex;gap:6px"><input id=sd value="ORIGENS-2026"><button id=rn style="width:48px;margin:0">↻</button></div>
@@ -58,11 +175,20 @@ button{cursor:pointer;margin-top:8px;background:var(--ac);color:#06202a;font-wei
 <div id="inventory-overlay" hidden>
   <section id="inventory-panel" role="dialog" aria-modal="true" aria-labelledby="inventory-title">
     <header class="inventory-heading">
-      <div><h2 id="inventory-title">INVENTÁRIO</h2><span id="inventory-capacity">0/16</span> espaços ocupados</div>
-      <button type="button" id="inventory-close" aria-label="Fechar inventário">Fechar · I</button>
+      <div class="inventory-tab"><span class="inventory-bag" aria-hidden="true"></span><div><span class="inventory-kicker">INVENTÁRIO</span><h2 id="inventory-title">OBJETOS</h2></div></div>
+      <div class="inventory-space"><span id="inventory-capacity">0/16</span><span>ESPAÇOS</span></div>
+      <button type="button" id="inventory-close" aria-label="Fechar inventário" title="Fechar inventário (I)">×</button>
     </header>
     <p class="inventory-help">Esquerdo: mover, juntar ou trocar.<br>Direito: dividir ou colocar uma unidade.</p>
     <div id="inventory-grid" role="group" aria-label="Mochila de 16 espaços"></div>
+    <aside class="inventory-details" id="inventory-details" aria-label="Informações do material">
+      <div class="inventory-detail-emblem"><span class="item-icon" id="inventory-detail-icon" aria-hidden="true" hidden></span><span class="inventory-bag" id="inventory-detail-empty" aria-hidden="true"></span></div>
+      <h3 id="inventory-detail-name">ESPAÇO LIVRE</h3>
+      <p class="inventory-detail-category" id="inventory-detail-category">[ MOCHILA ]</p>
+      <div class="inventory-detail-row"><span>PILHA</span><strong id="inventory-detail-quantity">— / 200</strong></div>
+      <div class="inventory-detail-row"><span id="inventory-detail-total-label">OCUPADOS</span><strong id="inventory-detail-total">0 / 16</strong></div>
+      <p id="inventory-detail-description">Passe o mouse sobre um material para ver seus detalhes.</p>
+    </aside>
     <p class="inventory-legend">1–9: acesso rápido aos mesmos espaços · 200 por pilha</p>
     <div id="inventory-pending" hidden>
       <p id="inventory-pending-text"></p>
@@ -499,8 +625,35 @@ function positionInventoryFloating(element, offsetX, offsetY) {
   element.style.top = Math.max(4, Math.min(innerHeight - bounds.height - 4, y + offsetY)) + 'px';
 }
 
+// Presentation only: this card reads the existing inventory without changing it.
+function renderInventoryDetails() {
+  if (!inventoryUIReady || !inventoryUIActive() || !inventoryOpen) return;
+  const card = $('inventory-details');
+  if (!card) return;
+  const inv = G.inventory;
+  const hover = inventoryUIHover && inventoryUIHover.isConnected ? inventoryUIHover : null;
+  const index = hover ? Number(hover.dataset[hover.hasAttribute('data-hotbar') ? 'hotbar' : 'slot']) : inventoryUISelected;
+  const stack = inv.cursor || inv.slots[index] || null;
+  const item = stack ? ITEM_TYPES[stack.itemId] : null;
+  const total = item ? inventoryTotals(inv)[item.id] : inv.slots.filter(Boolean).length;
+  const key = (item ? item.id + ':' + stack.quantity : 'empty') + ':' + total;
+  if (card.dataset.previewKey === key) return;
+  card.dataset.previewKey = key;
+  $('inventory-detail-icon').hidden = !item;
+  $('inventory-detail-icon').dataset.item = item ? item.id : '';
+  $('inventory-detail-empty').hidden = !!item;
+  $('inventory-detail-name').textContent = item ? item.name.toUpperCase() : 'ESPAÇO LIVRE';
+  $('inventory-detail-category').textContent = item ? '[ MATERIAL ]' : '[ MOCHILA ]';
+  $('inventory-detail-quantity').textContent = item ? stack.quantity + ' / ' + item.maxStack : '— / 200';
+  $('inventory-detail-total-label').textContent = item ? 'TOTAL' : 'OCUPADOS';
+  $('inventory-detail-total').textContent = item ? String(total) : total + ' / ' + INVENTORY_SIZE;
+  const descriptions = { wood: 'Madeira coletada das árvores.', stone: 'Pedra coletada das rochas.', ore: 'Minério bruto coletado dos cristais.' };
+  $('inventory-detail-description').textContent = item ? descriptions[item.id] : 'Passe o mouse sobre um material para ver seus detalhes.';
+}
+
 function refreshInventoryTooltip() {
   if (!inventoryUIReady) return;
+  renderInventoryDetails();
   const tooltip = $('inventory-tooltip');
   if (!inventoryUIActive() || mapOpen || (inventoryUIHover && !inventoryOpen && inventoryUIHover.hasAttribute('data-slot'))) {
     inventoryUIHover = null;
