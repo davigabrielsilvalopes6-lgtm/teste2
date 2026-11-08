@@ -1,0 +1,18 @@
+# Dependencies and generated output
+node_modules/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+package-lock.json
+npm-debug.log*
+
+# Historical reference: retain the exact original supplied by the user.
+ORIGENS — Mundo Procedural v0.2.html
+
+# Previous playable release kept intact as the v0.4 backup.
+ORIGENS — Survival v0.3.html
+
+# Previous release preserved when introducing crafting.
+ORIGENS — Survival v0.4.html
+origens-v0.4.html

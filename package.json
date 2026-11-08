@@ -1,0 +1,29 @@
+{
+  "name": "origens",
+  "version": "0.5.0",
+  "private": true,
+  "description": "ORIGENS: protótipo Canvas 2D e testes automatizados",
+  "scripts": {
+    "start": "node scripts/serve.cjs",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node tests/collection.test.cjs && node tests/inventory.test.cjs && node tests/crafting.test.cjs",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:install": "playwright install chromium",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
+    "eslint": "10.14.0",
+    "eslint-plugin-html": "8.2.1",
+    "globals": "17.14.0",
+    "prettier": "3.9.10"
+  }
+}
