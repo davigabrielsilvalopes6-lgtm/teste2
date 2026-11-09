@@ -1,0 +1,15 @@
+
+Running 6 tests using 2 workers
+
+(node:392702) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:392701) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [chromium] › tests/e2e/presentation.spec.js:36:3 › expanded inventory stays legible and clickable at 1280×800 (1.9s)
+  ✓  1 [chromium] › tests/e2e/presentation.spec.js:36:3 › expanded inventory stays legible and clickable at 640×480 (2.1s)
+  ✓  3 [chromium] › tests/e2e/presentation.spec.js:36:3 › expanded inventory stays legible and clickable at 390×844 (2.0s)
+  ✓  5 [chromium] › tests/e2e/presentation.spec.js:161:1 › tool drawing restores the Canvas transform and styles (1.2s)
+  ✓  4 [chromium] › tests/e2e/presentation.spec.js:83:1 › mouse aim changes held-tool pixels without moving or collecting, including camera and zoom changes (3.5s)
+  ✓  6 [chromium] › tests/e2e/presentation.spec.js:186:1 › switching from an expanded empty world refreshes the capacity shown in the detail card (1.3s)
+
+  6 passed (7.5s)

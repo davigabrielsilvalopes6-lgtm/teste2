@@ -1,0 +1,2332 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ORIGENS — Survival v0.7</title><style>
+:root{color-scheme:dark;--bg:#0b1219;--pn:#17303f;--ac:#8fd3c7;--tx:#e8f4ef;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
+#w{height:100%;display:flex;align-items:center;justify-content:center;position:relative}
+canvas{width:min(100%,calc(100vh*16/9));height:auto;aspect-ratio:16/9;image-rendering:pixelated;background:#000}
+#m{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,18,25,.94)}
+.b{background:var(--pn);border:3px solid var(--ac);box-shadow:5px 5px 0 #000;padding:18px;width:min(92%,420px);max-height:90vh;overflow:auto}
+.r{display:flex;gap:6px;align-items:center;margin-top:6px;font-size:12px;border:2px solid #2c5a66;padding:6px}.r div{flex:1;min-width:0;word-break:break-word}.r button{width:auto;margin:0;padding:4px 8px}
+h1{margin:0 0 4px;letter-spacing:4px;color:var(--ac)}label{display:block;margin:8px 0 2px;font-size:12px}
+input,select,button{width:100%;box-sizing:border-box;font:inherit;padding:7px;background:#0d1b24;color:var(--tx);border:2px solid var(--ac)}
+button{cursor:pointer;margin-top:8px;background:var(--ac);color:#06202a;font-weight:700}button:disabled{opacity:.5}
+
+/* Inventory v0.4: DOM coordinates stay independent from the world camera. */
+#inventory-overlay[hidden],#hotbar[hidden],#inventory-cursor[hidden],#inventory-tooltip[hidden],#inventory-pending[hidden]{display:none!important}
+#inventory-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:12px 12px 84px;box-sizing:border-box;background:rgba(6,15,22,.72);overscroll-behavior:contain}
+#inventory-panel{box-sizing:border-box;width:min(360px,100%);max-height:100%;overflow:auto;padding:14px;background:#17303f;border:3px solid #8fd3c7;box-shadow:4px 4px 0 #061018;color:#e8f4ef;scrollbar-color:#8fd3c7 #0d1b24}
+.inventory-heading{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;font-size:10px;color:#bfe6dc}
+.inventory-heading h2{margin:0 0 3px;font-size:18px;letter-spacing:2px;color:#8fd3c7}
+#inventory-close{width:auto;flex-shrink:0;margin:0;padding:5px 6px;font-size:11px;background:#0d1b24;color:#e8f4ef;border-width:2px}
+.inventory-help,.inventory-legend{font-size:11px;line-height:1.5;color:#c0dad7;margin:10px 0}
+.inventory-legend{margin-bottom:0}
+#inventory-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.inv-slot,.hotbar-slot{position:relative;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0;margin:0;min-width:0;color:#e8f4ef;background:#0d1b24;border:2px solid #446b72;box-shadow:inset 2px 2px 0 #07131a;user-select:none;touch-action:none;overflow:hidden;line-height:1}
+.inv-slot{width:100%;aspect-ratio:1;max-height:clamp(40px,9vh,68px)}
+.inv-slot.is-occupied,.hotbar-slot.is-occupied{background:#24404b;border-color:#608b8c}
+.inv-slot.is-selected,.hotbar-slot.is-selected{border-color:#ffe28a;box-shadow:inset 0 0 0 2px #8b743c}
+.inv-slot:focus-visible,.hotbar-slot:focus-visible,#inventory-close:focus-visible,#inventory-claim-pending:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.inv-slot:hover,.hotbar-slot:hover{background:#32535c}
+.slot-key{position:absolute;left:4px;top:3px;font-size:10px;color:#bdd6d4;line-height:1}
+.inv-slot.is-quick .slot-key,.hotbar-slot .slot-key{color:#ffe28a}
+.item-quantity{position:absolute;right:3px;bottom:3px;font-weight:bold;font-size:13px;color:#fff7db;text-shadow:1px 1px #000,-1px -1px #000;line-height:1;background:rgba(7,19,26,.8);padding:1px 2px;z-index:2}
+.item-icon[hidden]{display:none}.item-icon{position:relative;display:block;flex-shrink:0;width:28px;height:26px;image-rendering:pixelated;pointer-events:none}
+.item-icon[data-item="wood"]{width:28px;height:16px;background:#b67b41;border:2px solid #332516;box-sizing:border-box}
+.item-icon[data-item="wood"]:before{content:"";position:absolute;left:2px;top:1px;width:4px;height:10px;background:#f2c58e;box-shadow:7px 0 #754c2a}
+.item-icon[data-item="wood"]:after{content:"";position:absolute;right:2px;top:2px;width:3px;height:8px;background:#754c2a}
+.item-icon[data-item="stone"]{background:#82939c;clip-path:polygon(20% 0,80% 0,80% 15%,100% 15%,100% 85%,85% 85%,85% 100%,10% 100%,10% 85%,0 85%,0 20%,20% 20%)}
+.item-icon[data-item="stone"]:before{content:"";position:absolute;left:5px;top:3px;width:16px;height:7px;background:#cbd2d1}
+.item-icon[data-item="ore"]{width:22px;height:28px;background:#4fb3d9;clip-path:polygon(35% 0,65% 0,65% 15%,85% 15%,85% 35%,100% 35%,100% 85%,70% 85%,70% 100%,25% 100%,25% 85%,0 85%,0 35%,15% 35%,15% 15%,35% 15%)}
+.item-icon[data-item="ore"]:before{content:"";position:absolute;left:5px;top:4px;width:5px;height:18px;background:#b5f8ff}
+#inventory-status{min-height:32px;font-size:11px;color:#ffe28a;margin:10px 0 0;line-height:1.45;overflow-wrap:anywhere}
+#inventory-pending{font-size:11px;background:#0d1b24;border:1px solid #7f9a87;padding:8px;margin-top:10px}
+#inventory-pending-text{margin:0 0 6px;line-height:1.4;color:#ffe2a8}
+#inventory-claim-pending{margin:0;padding:5px;font-size:11px;border-width:1px}
+#hotbar{position:absolute;z-index:21;display:flex;gap:var(--hotbar-gap,4px);padding:5px;transform:translate(-50%,-100%);box-sizing:border-box;background:rgba(7,19,26,.95);border:2px solid #8fd3c7;max-width:calc(100% - 12px)}
+.hotbar-slot{flex:0 0 var(--hotbar-slot,48px);width:var(--hotbar-slot,48px);height:var(--hotbar-slot,48px)}
+.hotbar-slot .slot-key{left:2px;top:2px;font-size:var(--hotbar-key,10px)}
+.hotbar-slot .item-quantity{font-size:var(--hotbar-quantity,12px);right:1px;bottom:1px;padding:1px}
+.hotbar-slot .item-icon{transform:scale(var(--hotbar-icon,1))}
+#inventory-tooltip{position:fixed;z-index:41;max-width:min(260px,calc(100vw - 16px));box-sizing:border-box;padding:6px 8px;border:2px solid #8fd3c7;background:#07131a;color:#fff7db;font-size:12px;line-height:1.4;overflow-wrap:anywhere;pointer-events:none}
+#inventory-cursor{position:fixed;z-index:42;display:flex;width:48px;height:48px;align-items:center;justify-content:center;border:2px solid #ffe28a;background:rgba(7,19,26,.94);pointer-events:none;box-sizing:border-box}
+@media(max-width:440px){#inventory-overlay{padding:6px 6px 72px}#inventory-panel{padding:10px}.inventory-heading h2{font-size:16px}#inventory-grid{gap:4px}.inv-slot .item-quantity{font-size:12px}}
+
+
+/* Inventory appearance only: warm pixel borders and a material inspection card. */
+#inventory-overlay {
+  background: rgba(7, 17, 15, .24);
+}
+#inventory-panel {
+  --inventory-cell: clamp(40px, 9.5vh, 68px);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, calc(var(--inventory-cell) * 4 + 24px)) minmax(164px, 1fr);
+  grid-template-areas: "heading heading" "slots details" "help help" "legend legend" "pending pending" "status status";
+  align-content: start;
+  align-items: start;
+  gap: 10px 20px;
+  width: min(calc(var(--inventory-cell) * 4 + 260px), 100%);
+  max-height: 100%;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: #fff7dc;
+  box-shadow: none;
+  scrollbar-color: #d7a64d #18291e;
+}
+#inventory-panel .inventory-heading {
+  grid-area: heading;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 2px solid #fff2bb;
+  outline: 2px solid #211b15;
+  background: #ffce48;
+  color: #fff7db;
+  box-shadow: inset 0 -4px #d59635, inset 0 3px #ffe58b, 3px 4px #152017;
+  text-shadow: 1px 2px #55361e;
+}
+.inventory-tab {display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;}
+.inventory-kicker {display: block; margin-bottom: 2px; font-size: 9px; font-weight: 900; letter-spacing: 2px; color: #735028; text-shadow: none;}
+#inventory-panel .inventory-heading h2 {margin: 0; font-size: 17px; font-weight: 900; letter-spacing: 2px; color: #fff9e0; text-shadow: 2px 2px #54341d;}
+.inventory-bag {position: relative; flex: 0 0 28px; width: 28px; height: 25px; background: #a57636; box-shadow: inset 3px 0 #ca9b4c, inset -3px -3px #765026; clip-path: polygon(6px 0,22px 0,22px 4px,26px 4px,26px 10px,28px 10px,28px 25px,0 25px,0 10px,2px 10px,2px 4px,6px 4px);}
+.inventory-bag:before {content: ""; position: absolute; top: 8px; left: 4px; width: 20px; height: 4px; background: #60421f; box-shadow: 0 8px #d3a653;}
+.inventory-bag:after {content: ""; position: absolute; left: 12px; top: 6px; width: 4px; height: 17px; background: #efca76; box-shadow: 1px 0 #795128;}
+.inventory-space {display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 8px; font-weight: 900; letter-spacing: 1px; color: #694522; text-shadow: none;}
+#inventory-capacity {font-size: 14px; color: #fff7d9; text-shadow: 1px 2px #58381f;}
+#inventory-close {width: 27px; height: 27px; padding: 0; margin: 0; background: #edb33c; border: 2px solid #684723; box-shadow: inset 1px 1px #fff1a3; color: #fff9dd; font-size: 19px; line-height: 20px; text-shadow: 1px 1px #57371e;}
+#inventory-close:hover {background: #ffe798;}
+#inventory-grid {grid-area: slots; gap: 8px; padding: 0;}
+#inventory-panel .inv-slot {
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: none;
+  border: 2px solid #141c14;
+  background: rgba(13, 31, 21, .74);
+  box-shadow: inset 0 0 0 2px #dfbd77, inset 0 0 0 4px #443c26, 2px 3px #101a13;
+  overflow: visible;
+}
+#inventory-panel .inv-slot.is-occupied {background: rgba(27, 45, 29, .94); border-color: #141c14;}
+#inventory-panel .inv-slot:hover {background: rgba(62, 78, 40, .94);}
+#inventory-panel .inv-slot.is-selected {border-color: #f9f5d9; box-shadow: inset 0 0 0 2px #e4bd65, inset 0 0 0 4px #66502e, 2px 3px #101a13;}
+#inventory-panel .inv-slot.is-selected:after {content: ""; position: absolute; inset: -6px; border: 2px solid #fffce3; pointer-events: none; clip-path: polygon(0 0,12px 0,12px 3px,3px 3px,3px 12px,0 12px,0 0,100% 0,100% 12px,calc(100% - 3px) 12px,calc(100% - 3px) 3px,calc(100% - 12px) 3px,calc(100% - 12px) 0,100% 0,100% 100%,calc(100% - 12px) 100%,calc(100% - 12px) calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) calc(100% - 12px),100% calc(100% - 12px),100% 100%,0 100%,0 calc(100% - 12px),3px calc(100% - 12px),3px calc(100% - 3px),12px calc(100% - 3px),12px 100%,0 100%);}
+#inventory-panel .inv-slot .slot-key {left: 6px; top: 5px; font-size: 9px; color: #cfbd8c; text-shadow: 1px 1px #0a120d;}
+#inventory-panel .inv-slot .item-quantity {right: 5px; bottom: 5px; padding: 0; font-size: 13px; background: none; color: #fffbe6; text-shadow: 2px 2px #08120b, -1px -1px #08120b;}
+#inventory-panel .inv-slot .item-icon {transform: scale(1.12); filter: drop-shadow(2px 2px #0c160e);}
+.inventory-details {grid-area: details; align-self: start; min-width: 0; box-sizing: border-box; padding: 16px 12px 13px; border: 2px solid #f9e5a1; outline: 2px solid #342718; background: #ffd04b; box-shadow: inset -3px -4px #e9a83b, inset 2px 2px #ffe58a, 3px 4px #182117; text-align: center;}
+.inventory-detail-emblem {display: flex; align-items: center; justify-content: center; height: 58px; margin-bottom: 8px;}
+.inventory-detail-emblem .item-icon {transform: scale(1.8); filter: drop-shadow(2px 2px #ac772e);}
+.inventory-detail-emblem .inventory-bag {transform: scale(1.7);}
+#inventory-detail-name {margin: 0 0 18px; min-height: 30px; font-size: 15px; font-weight: 900; letter-spacing: 1px; line-height: 1.35; color: #fff9df; text-shadow: 2px 2px #694120; overflow-wrap: anywhere;}
+.inventory-detail-category {margin: 0 0 13px; color: #fff8dc; font-size: 10px; font-weight: 900; letter-spacing: 1px; text-shadow: 1px 2px #66401e;}
+.inventory-detail-row {display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 8px; color: #6d4824; font-size: 9px; font-weight: 900; letter-spacing: 1px;}
+.inventory-detail-row strong {font-size: 13px; letter-spacing: 0; color: #fff9df; text-shadow: 1px 2px #684322;}
+#inventory-detail-description {margin: 15px 0 0; padding-top: 10px; border-top: 2px solid #e6b442; color: #68451f; font-size: 10px; line-height: 1.6;}
+#inventory-panel .inventory-help {grid-area: help; margin: 0; color: #fff9df; font-size: 10px; text-shadow: 1px 2px #111d15;}
+#inventory-panel .inventory-legend {grid-area: legend; margin: 0; color: #dfd3a8; font-size: 10px; text-shadow: 1px 2px #111d15;}
+#inventory-panel #inventory-pending {grid-area: pending; margin: 0; border: 2px solid #c6a560; background: rgba(18, 34, 23, .96);}
+#inventory-panel #inventory-pending-text {color: #fff0bc;}
+#inventory-panel #inventory-claim-pending {background: #f4c354; border-color: #78592a; color: #392d19;}
+#inventory-panel #inventory-status {grid-area: status; margin: 0; min-height: 26px; padding: 6px 8px; box-sizing: border-box; border-left: 3px solid #d9b75d; background: rgba(13, 28, 20, .85); font-size: 10px; line-height: 1.4; color: #fff1be;}
+#inventory-overlay:not([hidden]) ~ #inventory-tooltip {border-color: #e6bd69; background: #15291d; color: #fff7db; box-shadow: 2px 3px #0d1b13; font-size: 11px;}
+#inventory-overlay:not([hidden]) ~ #inventory-cursor {border-color: #efcf88; background: #21351f; box-shadow: 2px 3px #0d1b13;}
+@media (max-width: 520px) {
+  #inventory-panel {grid-template-columns: minmax(0, 1fr) minmax(134px, .9fr); column-gap: 12px; width: 100%; padding: 6px;}
+  #inventory-panel .inventory-heading {gap: 8px;}
+  #inventory-panel .inventory-heading h2 {font-size: 14px;}
+  .inventory-space {font-size: 7px;}
+  .inventory-details {padding: 12px 8px;}
+  #inventory-detail-name {font-size: 12px;}
+  #inventory-panel .inv-slot .item-quantity {right: 4px; bottom: 4px; font-size: 11px;}
+}
+@media (max-width: 390px) {
+  #inventory-panel {grid-template-columns: minmax(0, 1fr); grid-template-areas: "heading" "slots" "details" "help" "legend" "pending" "status"; max-width: 300px;}
+  .inventory-details {display: grid; grid-template-columns: 56px 1fr; column-gap: 10px; text-align: left;}
+  .inventory-detail-emblem {grid-row: 1 / 5; height: 100%; min-height: 80px; margin: 0;}
+  #inventory-detail-name {min-height: 0; margin-bottom: 5px;}
+  .inventory-detail-category {margin-bottom: 2px;}
+  .inventory-detail-row {justify-content: flex-start; margin-top: 4px;}
+  #inventory-detail-description {grid-column: 1 / -1; margin-top: 8px;}
+}
+
+
+@media (max-height: 600px) {
+  #inventory-overlay {padding-bottom: 108px;}
+  #inventory-panel {row-gap: 6px;}
+  #inventory-panel .inventory-heading {min-height: 50px; padding-top: 6px; padding-bottom: 6px;}
+  .inventory-details {padding: 12px 10px;}
+  .inventory-detail-emblem {height: 38px; margin-bottom: 4px;}
+  .inventory-detail-emblem .item-icon {transform: scale(1.45);}
+  #inventory-detail-name {font-size: 14px; min-height: 20px; margin-bottom: 10px;}
+  .inventory-detail-category {margin-bottom: 8px;}
+  .inventory-detail-row {margin-top: 4px; font-size: 8px;}
+  .inventory-detail-row strong {font-size: 11px;}
+  #inventory-detail-description {margin-top: 10px; padding-top: 8px; font-size: 9px; line-height: 1.45;}
+  #inventory-panel .inventory-help, #inventory-panel .inventory-legend {font-size: 9px; line-height: 1.3;}
+  #inventory-panel #inventory-status {min-height: 22px; padding: 4px 6px; font-size: 9px;}
+}
+
+/* Only the five new material icons; existing world and inventory art is kept. */
+.item-icon[data-item="stick"]{width:7px;height:27px;background:#b5834e;transform:rotate(28deg);box-shadow:inset 2px 0 #edc28b,2px 2px #5d402a}
+.item-icon[data-item="stick"]:before{content:"";position:absolute;left:4px;top:6px;width:10px;height:4px;background:#a16d3c;transform:rotate(-30deg);box-shadow:0 -1px #edc28b}
+.item-icon[data-item="plank"]{width:30px;height:22px;background:#c58f50;border:2px solid #684422;box-sizing:border-box;box-shadow:inset 0 2px #ebc180,inset -3px 0 #a66a37}
+.item-icon[data-item="plank"]:before{content:"";position:absolute;left:0;right:0;top:5px;height:2px;background:#684422;box-shadow:0 6px #684422}
+.item-icon[data-item="plank"]:after{content:"";position:absolute;left:4px;top:2px;width:7px;height:1px;background:#e8b779;box-shadow:9px 11px #e8b779}
+.item-icon[data-item="chipped_stone"]{width:24px;height:25px;background:#a5afb4;clip-path:polygon(42% 0,78% 9%,100% 50%,83% 87%,35% 100%,0 73%,12% 33%)}
+.item-icon[data-item="chipped_stone"]:before{content:"";position:absolute;left:5px;top:4px;width:12px;height:9px;background:#e1e5dc;clip-path:polygon(40% 0,100% 80%,0 100%)}
+.item-icon[data-item="chipped_stone"]:after{content:"";position:absolute;left:7px;top:14px;width:16px;height:9px;background:#6c7d87;clip-path:polygon(0 0,100% 30%,55% 100%)}
+#inventory-backpack{margin-top:10px;padding-top:8px;border-top:2px solid #e6b442}#inventory-backpack p{margin:0 0 8px;color:#68451f;font-size:10px;line-height:1.5}
+#inventory-use-backpack{width:100%;padding:8px;background:#edb33c;border:2px solid #684723;box-shadow:inset 1px 1px #fff1a3;color:#3d2610;font:900 11px monospace;letter-spacing:1px;cursor:pointer}#inventory-use-backpack:disabled{opacity:.55;cursor:not-allowed;background:#b9a36a}
+.item-icon[data-item="rustic_backpack"],.item-icon[data-item="reinforced_backpack"]{width:24px;height:27px;background:#a57636;border:2px solid #4f3418;box-sizing:border-box;box-shadow:inset 3px 0 #ca9b4c,inset -3px 0 #765026;clip-path:polygon(18% 0,82% 0,100% 18%,100% 100%,0 100%,0 18%)}
+.item-icon[data-item="rustic_backpack"]:before,.item-icon[data-item="reinforced_backpack"]:before{content:"";position:absolute;left:3px;right:3px;top:7px;height:5px;background:#60421f;box-shadow:0 9px #d3a653}
+.item-icon[data-item="reinforced_backpack"]{background:#6d7b4b;border-color:#2e3a25;box-shadow:inset 3px 0 #98a96e,inset -3px 0 #4a5835}
+.item-icon[data-item="reinforced_backpack"]:before{background:#8d939a;box-shadow:0 9px #8d939a}
+.item-icon[data-item="stone_axe"],.item-icon[data-item="stone_pickaxe"]{width:28px;height:28px;background:linear-gradient(135deg,transparent 42%,#4a2f17 42% 62%,transparent 62%)}
+.item-icon[data-item="stone_axe"]:before{content:"";position:absolute;left:1px;top:1px;width:15px;height:13px;background:#a7b1b5;box-shadow:inset 3px 3px #d5dcdc,inset -3px -3px #6f7d84;clip-path:polygon(0 25%,55% 0,100% 45%,75% 100%,20% 85%)}
+.item-icon[data-item="stone_pickaxe"]:before{content:"";position:absolute;left:2px;top:1px;width:24px;height:8px;background:#a7b1b5;box-shadow:inset 0 3px #d5dcdc,inset 0 -2px #6f7d84;clip-path:polygon(0 100%,12% 25%,50% 0,88% 25%,100% 100%,82% 60%,50% 45%,18% 60%)}
+.item-icon[data-item="simple_handle"]{width:12px;height:28px;background:#ad7740;border:2px solid #674123;box-sizing:border-box;box-shadow:inset 3px 0 #d9aa6d}
+.item-icon[data-item="simple_handle"]:before{content:"";position:absolute;left:-3px;right:-3px;top:4px;height:3px;background:#d7cc93;box-shadow:0 6px #9b925f,0 12px #d7cc93}
+.item-icon[data-item="primitive_component"]{width:28px;height:25px;background:#7f8f94;border:2px solid #354748;box-sizing:border-box;clip-path:polygon(15% 0,85% 0,100% 20%,100% 85%,80% 100%,15% 100%,0 80%,0 15%)}
+.item-icon[data-item="primitive_component"]:before{content:"";position:absolute;left:2px;right:2px;top:3px;height:7px;background:#bdc8bd;box-shadow:0 9px #5d777b}
+.item-icon[data-item="primitive_component"]:after{content:"";position:absolute;left:9px;top:0;width:5px;height:24px;background:#bb8c4e;box-shadow:2px 0 #694d2d}
+
+/* Fabricação: regras isoladas para preservar o visual do inventário existente. */
+#crafting-overlay[hidden] {
+  display: none !important;
+}
+#crafting-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 12px 12px 84px;
+  background: rgba(6, 15, 22, 0.72);
+  overscroll-behavior: contain;
+}
+#crafting-panel {
+  width: min(730px, 100%);
+  max-height: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 6px;
+  color: #fff7dc;
+  scrollbar-color: #d7a64d #18291e;
+  overscroll-behavior: contain;
+}
+#crafting-panel .crafting-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 58px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 2px solid #fff2bb;
+  outline: 2px solid #211b15;
+  background: #ffce48;
+  box-shadow:
+    inset 0 -4px #d59635,
+    inset 0 3px #ffe58b,
+    3px 4px #152017;
+}
+#crafting-panel .crafting-kicker {
+  display: block;
+  margin-bottom: 3px;
+  color: #735028;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+#crafting-title {
+  margin: 0;
+  color: #fff9e0;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px #54341d;
+}
+#crafting-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #684723;
+  background: #edb33c;
+  box-shadow: inset 1px 1px #fff1a3;
+  color: #fff9dd;
+  font-size: 20px;
+  line-height: 20px;
+  text-shadow: 1px 1px #57371e;
+}
+#crafting-close:hover {
+  background: #ffe798;
+}
+#crafting-help {
+  margin: 10px 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #fff2c9;
+  text-shadow: 1px 1px #152017;
+}
+#crafting-panel .crafting-workspace {
+  display: grid;
+  grid-template-columns: minmax(170px, 1fr) minmax(0, 1.55fr);
+  align-items: start;
+  gap: 12px;
+}
+#crafting-recipes {
+  min-width: 0;
+}
+#crafting-recipes .crafting-category {
+  margin: 0 0 6px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #ffe69a;
+  text-shadow: 1px 1px #152017;
+}
+#crafting-recipes .crafting-category:not(:first-child) {
+  margin-top: 12px;
+}
+#crafting-recipes .crafting-recipe {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 49px;
+  padding: 7px 9px;
+  margin: 0 0 7px;
+  border: 2px solid #211b15;
+  background: rgba(13, 31, 21, 0.94);
+  box-shadow:
+    inset 0 0 0 2px #bf9b58,
+    2px 3px #152017;
+  color: #fff7dc;
+  text-align: left;
+}
+#crafting-recipes .crafting-recipe:hover {
+  background: #334a2b;
+}
+#crafting-recipes .crafting-recipe.is-selected {
+  background: #445330;
+  outline: 2px solid #fff4bd;
+  outline-offset: 1px;
+  box-shadow:
+    inset 0 0 0 2px #f6cc69,
+    2px 3px #152017;
+}
+#crafting-recipes .crafting-recipe-name {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+#crafting-recipes .crafting-recipe-state {
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+  line-height: 1.3;
+  color: #d4c49b;
+}
+#crafting-recipes .crafting-recipe.is-craftable .crafting-recipe-state {
+  color: #bde78c;
+}
+#crafting-panel .crafting-details {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 2px solid #f9e5a1;
+  outline: 2px solid #342718;
+  background: #ffd04b;
+  box-shadow:
+    inset -3px -4px #e9a83b,
+    inset 2px 2px #ffe58a,
+    3px 4px #182117;
+  color: #49321d;
+}
+#crafting-panel .crafting-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 34px;
+}
+#crafting-name {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+  color: #fff9e0;
+  text-shadow: 1px 2px #57371e;
+  overflow-wrap: anywhere;
+}
+#crafting-output {
+  margin: 4px 0 0;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+#crafting-description {
+  margin: 10px 0;
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+#crafting-panel .crafting-details h4 {
+  margin: 10px 0 7px;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+#crafting-ingredients .crafting-ingredient {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  box-sizing: border-box;
+  margin-top: 5px;
+  padding: 6px 7px;
+  border: 1px solid #a37c39;
+  background: #ffe38a;
+  font-size: 10px;
+  line-height: 1.5;
+}
+#crafting-ingredients .crafting-ingredient .item-icon {
+  transform: scale(0.75);
+}
+#crafting-ingredients .crafting-ingredient.is-missing {
+  border-color: #8d3429;
+  background: #ffd0a0;
+  color: #7a231c;
+}
+#crafting-availability {
+  min-height: 15px;
+  margin: 10px 0;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+#crafting-availability.is-unavailable {
+  color: #842e22;
+}
+#crafting-panel .crafting-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+#crafting-panel .crafting-actions button {
+  width: 100%;
+  min-height: 36px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 6px 3px;
+  border: 2px solid #5c4724;
+  background: #507b32;
+  box-shadow:
+    inset 1px 1px #c5df81,
+    inset -1px -2px #345024;
+  color: #fff9d8;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.4;
+  text-shadow: 1px 1px #243a20;
+}
+#crafting-panel .crafting-actions button:hover:not(:disabled) {
+  background: #679243;
+}
+#crafting-panel .crafting-actions button:disabled {
+  background: #d5b76e;
+  box-shadow: inset 1px 1px #ffe49e;
+  color: #6f5b36;
+  cursor: not-allowed;
+  text-shadow: none;
+}
+#crafting-panel button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+#crafting-status {
+  min-height: 28px;
+  margin: 10px 0 0;
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+#crafting-save-state {
+  margin: 10px 0 0;
+  min-height: 14px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #fff2c9;
+  text-shadow: 1px 1px #152017;
+}
+#crafting-save-state.is-pending {
+  color: #ffe28a;
+}
+#crafting-save-state.is-error {
+  color: #ffb599;
+}
+@media (max-height: 600px) {
+  #crafting-overlay {
+    padding: 8px 10px 108px;
+  }
+  #crafting-panel .crafting-heading {
+    min-height: 49px;
+    padding: 6px 10px;
+  }
+  #crafting-help {
+    margin: 8px 0;
+  }
+}
+@media (max-width: 580px) {
+  #crafting-panel .crafting-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #crafting-recipes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 8px;
+  }
+  #crafting-recipes .crafting-category {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+  #crafting-recipes .crafting-category:not(:first-child) {
+    margin-top: 3px;
+  }
+  #crafting-recipes .crafting-recipe {
+    margin: 0;
+    min-height: 48px;
+  }
+  #crafting-title {
+    font-size: 16px;
+  }
+  #crafting-panel .crafting-kicker {
+    font-size: 8px;
+  }
+}
+
+</style></head><body><div id=w><canvas id=c width=960 height=540></canvas><div id=m><div class=b><h1>ORIGENS</h1><div style="font-size:12px;opacity:.8">Arquipélago procedural · mochilas · v0.7</div>
+<label>Nome do mundo</label><input id=nm placeholder="Mundo 1">
+<label>Seed (texto ou número)</label><div style="display:flex;gap:6px"><input id=sd value="ORIGENS-2026"><button id=rn style="width:48px;margin:0">↻</button></div>
+<label>Tamanho</label><select id=sz><option value=128>Teste 128×128</option><option value=256>Pequeno 256×256</option><option value=512 selected>Médio 512×512</option><option value=1024>Grande 1024×1024</option></select>
+<button id=cr>Criar mundo</button><div id=wl></div><div id=ms style="font-size:12px;margin-top:8px;min-height:34px"></div></div></div>
+<div id="inventory-overlay" hidden>
+  <section id="inventory-panel" role="dialog" aria-modal="true" aria-labelledby="inventory-title">
+    <header class="inventory-heading">
+      <div class="inventory-tab"><span class="inventory-bag" aria-hidden="true"></span><div><span class="inventory-kicker">INVENTÁRIO</span><h2 id="inventory-title">OBJETOS</h2></div></div>
+      <div class="inventory-space"><span id="inventory-capacity">0/16</span><span>ESPAÇOS</span></div>
+      <button type="button" id="inventory-close" aria-label="Fechar inventário" title="Fechar inventário (I)">×</button>
+    </header>
+    <p class="inventory-help">Esquerdo: mover, juntar ou trocar.<br>Direito: dividir ou colocar uma unidade.</p>
+    <p class="inventory-help" id="inventory-tier-info"></p>
+    <div id="inventory-grid" role="group" aria-label="Mochila de 16 espaços"></div>
+    <aside class="inventory-details" id="inventory-details" aria-label="Informações do material">
+      <div class="inventory-detail-emblem"><span class="item-icon" id="inventory-detail-icon" aria-hidden="true" hidden></span><span class="inventory-bag" id="inventory-detail-empty" aria-hidden="true"></span></div>
+      <h3 id="inventory-detail-name">ESPAÇO LIVRE</h3>
+      <p class="inventory-detail-category" id="inventory-detail-category">[ MOCHILA ]</p>
+      <div class="inventory-detail-row"><span>PILHA</span><strong id="inventory-detail-quantity">— / 200</strong></div>
+      <div class="inventory-detail-row"><span id="inventory-detail-total-label">OCUPADOS</span><strong id="inventory-detail-total">0 / 16</strong></div>
+      <p id="inventory-detail-description">Passe o mouse sobre um material para ver seus detalhes.</p>
+      <div id="inventory-backpack" hidden><p id="inventory-backpack-info"></p><button type="button" id="inventory-use-backpack">USAR MOCHILA</button></div>
+    </aside>
+    <p class="inventory-legend">1–9: acesso rápido aos mesmos espaços · 200 por pilha</p>
+    <div id="inventory-pending" hidden>
+      <p id="inventory-pending-text"></p>
+      <button type="button" id="inventory-claim-pending">Recolher materiais pendentes</button>
+    </div>
+    <p id="inventory-status" role="status" aria-live="polite">Organize os materiais com o mouse.</p>
+  </section>
+</div>
+<div id="crafting-overlay" hidden>
+  <section
+    id="crafting-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="crafting-title"
+    aria-describedby="crafting-help"
+  >
+    <header class="crafting-heading">
+      <div>
+        <span class="crafting-kicker">ORIGENS · MATERIAIS E COMPONENTES</span>
+        <h2 id="crafting-title">FABRICAÇÃO</h2>
+      </div>
+      <button
+        id="crafting-close"
+        type="button"
+        aria-label="Fechar fabricação (C ou Escape)"
+        title="Fechar (C / Esc)"
+      >
+        ×
+      </button>
+    </header>
+    <p id="crafting-help">
+      Transforme os materiais da mochila. C ou Esc fecha · I abre o inventário.
+    </p>
+    <div class="crafting-workspace">
+      <nav id="crafting-recipes" aria-label="Receitas de fabricação"></nav>
+      <section class="crafting-details" aria-labelledby="crafting-name">
+        <div class="crafting-result">
+          <span id="crafting-result-icon" class="item-icon" aria-hidden="true"></span>
+          <div>
+            <h3 id="crafting-name">Selecione uma receita</h3>
+            <p id="crafting-output"></p>
+          </div>
+        </div>
+        <p id="crafting-description"></p>
+        <h4>INGREDIENTES DA MOCHILA</h4>
+        <div id="crafting-ingredients"></div>
+        <p id="crafting-availability"></p>
+        <div class="crafting-actions" aria-label="Quantidade de fabricações">
+          <button id="crafting-once" type="button" disabled>FABRICAR 1×</button>
+          <button id="crafting-five" type="button" disabled>FABRICAR 5×</button>
+          <button id="crafting-max" type="button" disabled>MÁXIMO (0)</button>
+        </div>
+        <p id="crafting-status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+    <p id="crafting-save-state" role="status" aria-live="polite"></p>
+  </section>
+</div>
+
+<div id="hotbar" role="toolbar" aria-label="Barra rápida: espaços 1 a 9 da mochila" hidden></div>
+<div id="inventory-cursor" aria-hidden="true" hidden><span class="item-icon"></span><span class="item-quantity"></span></div>
+<div id="inventory-tooltip" role="tooltip" hidden></div>
+
+</div>
+<script>
+"use strict";
+const T=32,GEN=2,SK='origens_save_v1',IK='origens_idx_v2',WK='origens_w_',W0=960,H0=540,cv=document.getElementById('c'),ctx=cv.getContext('2d'),$=i=>document.getElementById(i);ctx.imageSmoothingEnabled=false;
+/* v0.2: gerador corrigido (Fisher-Yates, 12 tentativas, nunca inicia mundo inválido, mínimos de recursos proporcionais à área, reposição determinística),
+   vários mundos salvos (índice + 1 chave por mundo, migração do save v1 sem apagá-lo), jangada reconhecendo água rasa do mar (mapa 'sea'). */
+// ===== SeededRandom / NoiseGenerator =====
+const hs=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
+const mul=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const hx=(x,y,s)=>{let h=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(s|0,2147483647);h=Math.imul(h^h>>>13,1274126177);return((h^h>>>16)>>>0)/4294967296};
+const sm=t=>t*t*(3-2*t);
+const vn=(x,y,s)=>{const xi=Math.floor(x),yi=Math.floor(y),fx=sm(x-xi),fy=sm(y-yi),a=hx(xi,yi,s),b=hx(xi+1,yi,s),c=hx(xi,yi+1,s),d=hx(xi+1,yi+1,s);return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy};
+const fbm=(x,y,s)=>vn(x,y,s)*.55+vn(x*2.1,y*2.1,s+1)*.3+vn(x*4.3,y*4.3,s+2)*.15;
+// ===== Geração: ilhas, biomas, terreno, objetos, validação =====
+// terrenos: 0 fundo,1 médio,2 raso/lago,3 praia,4 grama,5 grama úmida,6 solo rochoso,7 vulcânico,8 lava,9 grama do ar
+// objetos: 1 árvore,2 pedra,3 cristal/minério,4 junco,5 concha
+function* build(name,seed,N,att){
+const S=hs(seed+'|'+att),R=mul(S),I=[],c=N/2,P=att?'['+(att+1)+'] ':'';
+const nb=(i,f)=>{const x=i%N;if(x>0)f(i-1);if(x<N-1)f(i+1);if(i>=N)f(i-N);if(i<N*N-N)f(i+N)};
+const add=(x,y,rx,ry,el,kind)=>I.push({x,y,rx,ry,a:R()*6.28,el,kind,s:S+I.length*977});
+yield P+'Posicionando ilhas';
+add(c+(R()-.5)*N*.06,c+(R()-.5)*N*.06,Math.max(12,N*(.075+R()*.01)),Math.max(10.5,N*(.065+R()*.01)),0,0);
+const ord=[1,2,3,4],a0=R()*6.28;for(let i=3;i>0;i--){const j=(R()*(i+1))|0;[ord[i],ord[j]]=[ord[j],ord[i]]}
+ord.forEach((e,i)=>{const a=a0+i*1.5708+(R()-.5)*.5,d=N*(.29+R()*.05);add(c+Math.cos(a)*d,c+Math.sin(a)*d,Math.max(9,N*(.07+R()*.03)),Math.max(8,N*(.06+R()*.03)),e,0)});
+const ns=Math.round(N/64*(.8+R()*.7));
+for(let n=0;n<ns;n++)for(let t=0;t<60;t++){const x=N*(.08+R()*.84),y=N*(.08+R()*.84),rr=N*(.025+R()*.03);if(I.every(o=>Math.hypot(o.x-x,o.y-y)>(Math.max(o.rx,o.ry)+rr)*1.45+6)){add(x,y,rr*(1+R()*.6),rr,0,1+(R()*3|0));break}}
+yield P+'Gerando costas (ruído fractal)';
+const h=new Float32Array(N*N),own=new Uint8Array(N*N);
+I.forEach((o,k)=>{const m=Math.max(o.rx,o.ry)*1.5+2,ca=Math.cos(o.a),sa=Math.sin(o.a);for(let y=Math.max(0,(o.y-m)|0);y<Math.min(N,o.y+m);y++)for(let x=Math.max(0,(o.x-m)|0);x<Math.min(N,o.x+m);x++){const dx=x-o.x,dy=y-o.y,u=(dx*ca+dy*sa)/o.rx,v2=(-dx*sa+dy*ca)/o.ry;let v=1-Math.hypot(u,v2)+(fbm(x*.045,y*.045,o.s)-.5)*.9;const e=Math.min(x,y,N-1-x,N-1-y);if(e<8)v-=(8-e)*.15;const i=y*N+x;if(v>h[i]){h[i]=v;own[i]=k+1}}});
+const ter=new Uint8Array(N*N);for(let i=0;i<N*N;i++)ter[i]=h[i]>.15?4:0;
+const Q=new Int32Array(N*N),seen=new Uint8Array(N*N);
+for(let s0=0;s0<N*N;s0++){if(seen[s0]||!ter[s0])continue;let qh=0,qt=0;Q[qt++]=s0;seen[s0]=1;while(qh<qt)nb(Q[qh++],j=>{if(!seen[j]&&ter[j]){seen[j]=1;Q[qt++]=j}});if(qt<14)for(let k=0;k<qt;k++){ter[Q[k]]=0;own[Q[k]]=0}}
+yield P+'Calculando profundidade e praias';
+const D=new Uint8Array(N*N);let qh=0,qt=0;
+for(let i=0;i<N*N;i++)nb(i,j=>{if(!D[i]&&(ter[j]>0)!==(ter[i]>0)){D[i]=1;Q[qt++]=i}});
+while(qh<qt){const i=Q[qh++];nb(i,j=>{if(!D[j]&&(ter[j]>0)==(ter[i]>0)){D[j]=Math.min(254,D[i]+1);Q[qt++]=j}})}
+yield P+'Aplicando biomas e terrenos';
+for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=y*N+x,d=D[i]||99;if(!ter[i]){ter[i]=d<=2?2:d<=6?1:0;continue}
+const o=I[own[i]-1],el=o.el,n=fbm(x*.07,y*.07,S+5),bw=1+((fbm(x*.15,y*.15,S+7)*4)|0)+(o.kind==3?2:0);let t=4;
+if(d<=bw)t=3;else if(el==1){t=5;if(n>.66&&d>4)t=2}else if(el==2||o.kind==2)t=n>.5?6:4;else if(el==3){t=n<.35?6:7;if(d>5&&fbm(x*.11,y*.11,S+11)>.7)t=8}else if(el==4)t=9;
+ter[i]=t}
+const sea=new Uint8Array(N*N);{let a=0,b=0;Q[b++]=0;sea[0]=1;while(a<b)nb(Q[a++],j=>{if(!sea[j]&&ter[j]<3){sea[j]=1;Q[b++]=j}})}
+yield P+'Plantando vegetação e recursos';
+const ob=new Uint8Array(N*N);
+for(let y=0;y<N;y++)for(let x=0;x<N;x++){const i=y*N+x,t=ter[i];if(t<3||t==8)continue;const o=I[own[i]-1],el=o.el,d=D[i];
+if(t==3){if(d>1&&hx(x,y,S+37)<.012)ob[i]=5;continue}
+if(d<2||fbm(x*.05,y*.05,S+13)>.62)continue;
+let td=[.34,.28,.05,.015,.05][el],rd=[.025,.05,.1,.07,.03][el];if(o.kind==1)td=.45;if(o.kind==2)rd=.12;
+const f=fbm(x*.09,y*.09,S+17);
+if(hx(x,y,S+19)<td*Math.max(0,(f-.3)*2.4)){if(!(x&&ob[i-1]==1)&&!(y&&ob[i-N]==1))ob[i]=1}
+else if(hx(x,y,S+23)<rd)ob[i]=(el>1&&el<4&&hx(x,y,S+29)<.2)?3:2;
+else if(el==1&&hx(x,y,S+31)<.07)ob[i]=4}
+// spawn seguro na ilha inicial
+let sp=null,bd=1e9;const s0=I[0];
+for(let y=Math.max(1,(s0.y-30)|0);y<Math.min(N-1,s0.y+30);y++)for(let x=Math.max(1,(s0.x-30)|0);x<Math.min(N-1,s0.x+30);x++){const i=y*N+x;if(ter[i]==4&&D[i]>=3&&own[i]==1){const q=Math.hypot(x-s0.x,y-s0.y);if(q<bd){bd=q;sp={x,y}}}}
+if(sp)for(let y=sp.y-7;y<=sp.y+7;y++)for(let x=sp.x-7;x<=sp.x+7;x++)if(Math.hypot(x-sp.x,y-sp.y)<4.5+hx(x,y,S+41)*1.5)ob[y*N+x]=0;
+yield P+'Validando o mundo';
+const fails=[];let tr=0,rk=0;const ar=new Int32Array(I.length+1);for(let i=0;i<N*N;i++)if(ter[i]>2)ar[own[i]]++;
+if(ar[1]<150)fails.push('ilha inicial pequena');for(let e=1;e<5;e++)if(ar[e+1]<60)fails.push('região '+['','Água','Terra','Fogo','Ar'][I[e].el]+' pequena');
+for(let k=0;k<3;k++)for(let x=0;x<N;x++)if(ter[k*N+x]>2||ter[(N-1-k)*N+x]>2||ter[x*N+k]>2||ter[x*N+N-1-k]>2){fails.push('ilha cortada pela borda');k=3;break}
+if(!sp)fails.push('sem spawn');else{
+const vis=new Uint8Array(N*N),wk=i=>ter[i]>2&&ter[i]!=8&&(ob[i]<1||ob[i]>3);let qh=0,qt=0;Q[qt++]=sp.y*N+sp.x;vis[Q[0]]=1;
+while(qh<qt)nb(Q[qh++],j=>{if(!vis[j]&&wk(j)){vis[j]=1;Q[qt++]=j}});
+const reach=qt;if(reach<100)fails.push('spawn preso');
+const m=Math.max(s0.rx,s0.ry)*1.6+2,bx0=Math.max(1,(s0.x-m)|0),bx1=Math.min(N-2,(s0.x+m)|0),by0=Math.max(1,(s0.y-m)|0),by1=Math.min(N-2,(s0.y+m)|0);
+const cnt=()=>{const q=[0,0,0,0];for(let y=by0;y<=by1;y++)for(let x=bx0;x<=bx1;x++){const i=y*N+x,o=ob[i];if(own[i]!=1||o<1||o>3)continue;let a=0;nb(i,j=>{if(vis[j])a=1});if(!a)continue;const n=Math.hypot(x-sp.x,y-sp.y)<=16;if(o==1){q[0]++;if(n)q[2]++}else{q[1]++;if(n)q[3]++}}return q};
+const fill=(t,n,mr)=>{if(n<=0)return;const c=[];for(let y=by0;y<=by1;y++)for(let x=bx0;x<=bx1;x++){const i=y*N+x,d=Math.hypot(x-sp.x,y-sp.y);if(!vis[i]||ter[i]!=4||D[i]<3||ob[i]||d<=5.5||d>mr)continue;let k=1;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++){const j=i+b*N+a;if(!vis[j]||(ob[j]>0&&ob[j]<4))k=0}if(k)c.push(i)}c.sort((p,q)=>hx(p%N,(p/N)|0,S+53)-hx(q%N,(q/N)|0,S+53));for(let k=0;k<n&&k<c.length;k++)ob[c[k]]=t};
+const mt=Math.min(25,Math.max(6,reach>>5)),mrk=Math.min(15,Math.max(4,(reach/60)|0));
+let r0=cnt();fill(1,mt-r0[0],1e9);fill(2,mrk-r0[1],1e9);r0=cnt();fill(1,3-r0[2],16);fill(2,2-r0[3],16);const r1=cnt();tr=r1[0];rk=r1[1];
+if(tr<mt)fails.push('poucas árvores');if(rk<mrk)fails.push('poucas pedras');if(r1[2]<3||r1[3]<2)fails.push('recursos longe do spawn');
+let cs=0;for(let k=0;k<reach&&!cs;k++){const i=Q[k];if(ter[i]==3)nb(i,j=>{if(sea[j])cs=1})}
+if(!cs)fails.push('sem costa acessível');
+for(let e=1;e<5;e++){let f=0;for(let i=0;i<N*N&&!f;i++)if(own[i]==e+1&&ter[i]>2)nb(i,j=>{if(sea[j])f=1});if(!f)fails.push('ilha '+e+' inacessível')}}
+return{name,seed,N,ter,ob,own,D,I,sea,sp,ok:!fails.length,fails,att,tr,rk}}
+function* gen(name,seed,N){const log=[];for(let a=0;a<12;a++){const w=yield*build(name,seed,N,a);if(w.ok){w.att=a;w.log=log;return w}log.push(w.fails)}return{ok:false,fails:['sem mundo válido'],log,sp:null,ter:new Uint8Array(0),ob:new Uint8Array(0),I:[]}}
+window.ORIGENS_TEST=(n=20,N=128)=>{const hz=w=>{let h=0;for(let i=0;i<w.ter.length;i++)h=Math.imul(h^(w.ter[i]*31+w.ob[i]),16777619)>>>0;return h},run=s=>{let r;const g=gen('t','TEST'+s,N);while(!(r=g.next()).done);return r.value};let ok=0,det=0,ms=performance.now();for(let k=0;k<n;k++){const a=run(k),b=run(k);if(!a.fails.length)ok++;if(hz(a)==hz(b))det++}const r={validosDeNovo1aTentativa:ok,deterministas:det,total:n,ms:Math.round(performance.now()-ms)};console.log(r);return r};
+window.ORIGENS_TESTS=async(plan=[[128,100],[256,100],[512,30],[1024,10]])=>{const hz=w=>{let h=0;for(let i=0;i<w.ter.length;i++)h=Math.imul(h^(w.ter[i]*31+w.ob[i]),16777619)>>>0;return(h^(w.sp?w.sp.x*7+w.sp.y:0))>>>0},out=[];
+for(const[N,n]of plan){const r={N,n,validos:0,invalidos:0,deterministas:0,tentativasMedias:0,motivosDeRetentativa:{},msMedio:0,ilhasMedias:0,arvoresMed:0,pedrasMed:0};
+for(let k=0;k<n;k++){const run=()=>{let v;const g=gen('t','TEST-'+N+'-'+k,N);while(!(v=g.next()).done);return v.value},t=performance.now(),a=run();r.msMedio+=performance.now()-t;a.log.flat().forEach(m=>r.motivosDeRetentativa[m]=(r.motivosDeRetentativa[m]||0)+1);
+if(a.ok){r.validos++;r.tentativasMedias+=a.att+1;r.ilhasMedias+=a.I.length;r.arvoresMed+=a.tr;r.pedrasMed+=a.rk}else r.invalidos++;if(hz(run())==hz(a))r.deterministas++;await new Promise(f=>setTimeout(f))}
+const v=Math.max(1,r.validos);r.msMedio=Math.round(r.msMedio/n);r.tentativasMedias=+(r.tentativasMedias/v).toFixed(2);r.ilhasMedias=+(r.ilhasMedias/v).toFixed(1);r.arvoresMed=Math.round(r.arvoresMed/v);r.pedrasMed=Math.round(r.pedrasMed/v);console.log(r);out.push(r)}return out};
+// ===== Arte pixel (gerada por código) =====
+const mk=(w,h,f)=>{const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.imageSmoothingEnabled=false;f(g);return c};
+const shd=(g,x,y,w)=>{g.fillStyle='rgba(0,0,0,.28)';g.fillRect(x,y,w,6);g.fillRect(x+4,y-2,w-8,2);g.fillRect(x+4,y+6,w-8,2)};
+const TC=[['#1b4f8a','#1a4680','#2160a0'],['#2a73b5','#2467a8','#3384c4'],['#44b5c9','#3aa6bd','#6fd0dc'],['#e6d49a','#d6c283','#f3e6b5'],['#5aa13f','#4c9035','#73b84d'],['#3f8a5a','#357a4e','#58a36c'],['#8a8478','#78726a','#a39d8f'],['#4a3f3f','#3a3030','#5e5050'],['#e8531c','#c23a12','#ffb02e'],['#98c46a','#88b45c','#b3d884']];
+const MC=TC.map(c=>[1,3,5].map(k=>parseInt(c[0].substr(k,2),16)));
+const A=TC.map((c,t)=>[0,1,2,3].map(v=>mk(32,32,g=>{g.fillStyle=c[0];g.fillRect(0,0,32,32);for(let n=0;n<9;n++){g.fillStyle=c[1+(n&1)];g.fillRect((hx(v,n,t)*15|0)*2,(hx(n,v,t+9)*15|0)*2,t==3?2:4,2)}})));
+const TP=[['#7fd05a','#4fa83c','#33802d','#6b4a2b'],['#5fcf9a','#35a37a','#237a60','#5b4a3a'],['#a5c46a','#7a9a46','#576f33','#6e5a3e'],['#8a7d78','#5f5450','#40383a','#3a2a24'],['#c5e88a','#9bcf68','#72a84f','#8a6a45']];
+const RP=[['#b6b6ac','#8f8f88','#6a6a66'],['#9db8b4','#73918f','#52706e'],['#b09f8a','#857662','#5f5344'],['#5c4c4c','#3e3232','#2a2020'],['#d8dde0','#aeb6bd','#808a93']];
+const TS=TP.map(c=>[[2,4,6,7,8,8,8,7,6,4],[3,5,6,8,8,7,8,7,5,3]].map(W=>mk(64,96,g=>{shd(g,14,86,36);g.fillStyle=c[3];g.fillRect(27,56,10,32);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(33,56,4,32);W.forEach((w,r)=>{const x=32-w*3,y=10+r*5,e=Math.min(w,2)*6;g.fillStyle=c[1];g.fillRect(x,y,w*6,5);if(r<6){g.fillStyle=c[0];g.fillRect(x,y,e,5)}if(r>3){g.fillStyle=c[2];g.fillRect(x+w*6-e,y,e,5)}})})));
+const RS=RP.map(c=>mk(32,32,g=>{shd(g,4,24,24);[4,6,7,7,6].forEach((w,r)=>{const x=16-w*2,y=6+r*4;g.fillStyle=c[1];g.fillRect(x,y,w*4,4);if(r<2){g.fillStyle=c[0];g.fillRect(x,y,w*4-4,4)}if(r>1){g.fillStyle=c[2];g.fillRect(x+w*4-6,y,6,4)}})}));
+const CS=[['#9fe8ff','#4fb3d9'],['#ff9a4d','#e0451f']].map(c=>mk(32,32,g=>{shd(g,6,24,20);[[6,10,8,18],[14,4,8,22],[21,12,6,14]].forEach(([x,y,w,h])=>{g.fillStyle=c[1];g.fillRect(x,y,w,h);g.fillStyle=c[0];g.fillRect(x,y,3,h-2);g.fillRect(x+2,y-3,w-4,3)})}));
+const RD=mk(32,32,g=>{[[6,10],[12,4],[18,8],[24,12]].forEach(([x,h])=>{g.fillStyle='#6fae4a';g.fillRect(x,26-h*1.6,2,h*1.6);g.fillStyle='#8b6b3a';g.fillRect(x-1,23-h*1.6,4,4)})});
+const SH=mk(32,32,g=>{g.fillStyle='#f4d6d0';g.fillRect(12,18,8,6);g.fillStyle='#d99aa0';g.fillRect(14,20,4,2)});
+// ===== Inventário v0.4: modelo =====
+const INITIAL_INVENTORY_SIZE = 16;
+const MAX_INVENTORY_SIZE = 32;
+// v0.7: única fonte de capacidade. O nível da mochila do inventário define quantos slots existem.
+const BACKPACK_TIERS = Object.freeze({
+  0: Object.freeze({ name: 'Inventário Inicial', capacity: INITIAL_INVENTORY_SIZE, columns: 4 }),
+  1: Object.freeze({ name: 'Mochila Rústica', capacity: 24, columns: 6 }),
+  2: Object.freeze({ name: 'Mochila Reforçada', capacity: MAX_INVENTORY_SIZE, columns: 8 }),
+});
+function inventoryTier(inv) {
+  const t = inv && typeof inv === 'object' ? (inv.backpackTier === undefined ? 0 : inv.backpackTier) : -1;
+  return Number.isInteger(t) && Object.hasOwn(BACKPACK_TIERS, t) ? t : -1;
+}
+function getInventoryCapacity(inv) {
+  const t = inventoryTier(inv);
+  return t < 0 ? 0 : BACKPACK_TIERS[t].capacity;
+}
+const DEFAULT_MAX_STACK = 200;
+const HOTBAR_SIZE = 9;
+const ITEM_TYPES = Object.freeze({
+  wood: Object.freeze({id: "wood", name: "Madeira", maxStack: DEFAULT_MAX_STACK, category: "material", color: "#b67b41", description: "Madeira coletada das árvores."}),
+  stone: Object.freeze({id: "stone", name: "Pedra", maxStack: DEFAULT_MAX_STACK, category: "material", color: "#bcc5c9", description: "Pedra coletada das rochas."}),
+  ore: Object.freeze({id: "ore", name: "Minério bruto", maxStack: DEFAULT_MAX_STACK, category: "material", color: "#a6f5ff", description: "Minério bruto coletado dos cristais."}),
+  stick: Object.freeze({id: "stick", name: "Graveto", maxStack: DEFAULT_MAX_STACK, category: "material", color: "#c7955b", description: "Pequeno material de madeira fabricado à mão."}),
+  plank: Object.freeze({id: "plank", name: "Tábua", maxStack: DEFAULT_MAX_STACK, category: "material", color: "#d8a35d", description: "Material básico produzido a partir de madeira."}),
+  chipped_stone: Object.freeze({id: "chipped_stone", name: "Pedra lascada", maxStack: DEFAULT_MAX_STACK, category: "material", color: "#acb7b8", description: "Fragmento de pedra preparado à mão."}),
+  simple_handle: Object.freeze({id: "simple_handle", name: "Cabo simples", maxStack: DEFAULT_MAX_STACK, category: "component", color: "#b9854d", description: "Componente de gravetos e tábua. Ainda não é uma ferramenta."}),
+  primitive_component: Object.freeze({id: "primitive_component", name: "Peça primitiva", maxStack: DEFAULT_MAX_STACK, category: "component", color: "#a0b6ac", description: "Componente primitivo, sem função de equipamento nesta etapa."}),
+  stone_axe: Object.freeze({id: "stone_axe", name: "Machado de Pedra", maxStack: 1, category: "tool", toolType: "axe", tier: "primitive", color: "#a7b1b5", description: "Ferramenta primitiva: corta árvores com menos golpes. Use-a pela barra rápida."}),
+  stone_pickaxe: Object.freeze({id: "stone_pickaxe", name: "Picareta de Pedra", maxStack: 1, category: "tool", toolType: "pickaxe", tier: "primitive", color: "#a7b1b5", description: "Ferramenta primitiva: quebra rochas e minérios com menos golpes. Use-a pela barra rápida."}),
+  rustic_backpack: Object.freeze({id: "rustic_backpack", name: "Mochila Rústica", maxStack: 1, category: "backpack", backpackTier: 1, color: "#a57636", description: "Use no inventário para expandir de " + BACKPACK_TIERS[0].capacity + " para " + BACKPACK_TIERS[1].capacity + " espaços. É consumida ao usar."}),
+  reinforced_backpack: Object.freeze({id: "reinforced_backpack", name: "Mochila Reforçada", maxStack: 1, category: "backpack", backpackTier: 2, color: "#6d7b4b", description: "Exige a Mochila Rústica já usada. Expande de " + BACKPACK_TIERS[1].capacity + " para " + BACKPACK_TIERS[2].capacity + " espaços. É consumida ao usar."}),
+});
+function emptyItemCounts(){return Object.fromEntries(Object.keys(ITEM_TYPES).map(id=>[id,0]))}
+
+function inventoryItem(itemId) {
+  return typeof itemId === 'string' && Object.hasOwn(ITEM_TYPES, itemId)
+    ? ITEM_TYPES[itemId]
+    : null;
+}
+
+function createInventory() {
+  return {
+    slots: Array(INITIAL_INVENTORY_SIZE).fill(null),
+    backpackTier: 0,
+    cursor: null,
+    selected: 0,
+    pending: emptyItemCounts(),
+    migrationVersion: 1,
+  };
+}
+
+function isValidStack(stack) {
+  const item =
+    stack && typeof stack === 'object' && !Array.isArray(stack)
+      ? inventoryItem(stack.itemId)
+      : null;
+  return (
+    !!item &&
+    Number.isSafeInteger(stack.quantity) &&
+    stack.quantity > 0 &&
+    stack.quantity <= item.maxStack
+  );
+}
+
+function inventoryReady(inv) {
+  if (!inv || !Array.isArray(inv.slots) || inv.slots.length !== getInventoryCapacity(inv)) return false;
+  const references = new Set();
+  for (const stack of [...inv.slots, inv.cursor]) {
+    if (stack === null) continue;
+    if (!isValidStack(stack) || references.has(stack)) return false;
+    references.add(stack);
+  }
+  return true;
+}
+
+function inventoryCapacity(inv, itemId) {
+  const item = inventoryItem(itemId);
+  if (!item || !inventoryReady(inv)) return 0;
+  return inv.slots.reduce(
+    (total, stack) =>
+      total +
+      (!stack ? item.maxStack : stack.itemId === itemId ? item.maxStack - stack.quantity : 0),
+    0,
+  );
+}
+
+function addItems(inv, itemId, quantity) {
+  if (!Number.isSafeInteger(quantity) || quantity <= 0) return 0;
+  const item = inventoryItem(itemId);
+  if (!item || !inventoryReady(inv)) return quantity;
+  let remainder = quantity;
+  // Filling partial stacks first prevents needless fragmentation.
+  for (const stack of inv.slots) {
+    if (!stack || stack.itemId !== itemId) continue;
+    const amount = Math.min(remainder, item.maxStack - stack.quantity);
+    stack.quantity += amount;
+    remainder -= amount;
+    if (!remainder) return 0;
+  }
+  for (let i = 0; i < inv.slots.length && remainder; i++) {
+    if (inv.slots[i] !== null) continue;
+    const amount = Math.min(remainder, item.maxStack);
+    inv.slots[i] = { itemId, quantity: amount };
+    remainder -= amount;
+  }
+  return remainder;
+}
+
+function inventoryTotals(inv) {
+  const totals = emptyItemCounts();
+  if (!inventoryReady(inv)) return totals;
+  for (const stack of [...inv.slots, inv.cursor]) if (stack) totals[stack.itemId] += stack.quantity;
+  return totals;
+}
+
+function inventorySlotClick(inv, index, button = 0) {
+  if (
+    !inventoryReady(inv) ||
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= inv.slots.length ||
+    (button !== 0 && button !== 2)
+  )
+    return false;
+  const slot = inv.slots[index],
+    cursor = inv.cursor;
+  if (!cursor) {
+    if (!slot) return false;
+    const amount = button === 2 ? Math.ceil(slot.quantity / 2) : slot.quantity;
+    inv.cursor = { itemId: slot.itemId, quantity: amount };
+    inv.slots[index] =
+      slot.quantity === amount ? null : { itemId: slot.itemId, quantity: slot.quantity - amount };
+    return true;
+  }
+  if (button === 0 && slot && slot.itemId !== cursor.itemId) {
+    inv.slots[index] = { ...cursor };
+    inv.cursor = { ...slot };
+    return true;
+  }
+  if (slot && slot.itemId !== cursor.itemId) return false;
+  const room = inventoryItem(cursor.itemId).maxStack - (slot ? slot.quantity : 0);
+  const amount = Math.min(room, button === 2 ? 1 : cursor.quantity);
+  if (!amount) return false;
+  inv.slots[index] = {
+    itemId: cursor.itemId,
+    quantity: (slot ? slot.quantity : 0) + amount,
+  };
+  inv.cursor =
+    cursor.quantity === amount
+      ? null
+      : { itemId: cursor.itemId, quantity: cursor.quantity - amount };
+  return true;
+}
+
+function returnInventoryCursor(inv) {
+  if (!inventoryReady(inv)) return false;
+  if (!inv.cursor) return true;
+  const { itemId, quantity } = inv.cursor;
+  const remainder = addItems(inv, itemId, quantity);
+  inv.cursor = remainder ? { itemId, quantity: remainder } : null;
+  return remainder === 0;
+}
+
+function selectInventorySlot(inv, index) {
+  if (
+    !inventoryReady(inv) ||
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= HOTBAR_SIZE ||
+    inv.selected === index
+  )
+    return false;
+  inv.selected = index;
+  return true;
+}
+
+function claimPendingInventory(inv) {
+  if (!inventoryReady(inv) || !inv.pending || typeof inv.pending !== 'object') return 0;
+  let inserted = 0;
+  for (const itemId of Object.keys(ITEM_TYPES)) {
+    const amount = inv.pending[itemId];
+    if (!Number.isSafeInteger(amount) || amount <= 0) continue;
+    const remainder = addItems(inv, itemId, amount);
+    inserted += amount - remainder;
+    inv.pending[itemId] = remainder;
+  }
+  return inserted;
+}
+
+const BACKPACK_REASONS = Object.freeze({
+  invalid_inventory: 'inventário inválido',
+  invalid_slot: 'espaço inválido',
+  empty_slot: 'selecione uma mochila no inventário',
+  not_backpack: 'este item não é uma mochila',
+  already_unlocked: 'este nível de mochila já foi desbloqueado',
+  needs_previous: 'use primeiro a Mochila Rústica',
+});
+// Verifica sem alterar nada. O nível alvo precisa ser exatamente o próximo e a mochila precisa estar num slot.
+function backpackUseCheck(inv, index) {
+  if (!inventoryReady(inv)) return { ok: false, reason: 'invalid_inventory' };
+  if (!Number.isInteger(index) || index < 0 || index >= inv.slots.length) return { ok: false, reason: 'invalid_slot' };
+  const stack = inv.slots[index];
+  if (!stack) return { ok: false, reason: 'empty_slot' };
+  const item = inventoryItem(stack.itemId);
+  if (!item || item.category !== 'backpack' || !Object.hasOwn(BACKPACK_TIERS, item.backpackTier))
+    return { ok: false, reason: 'not_backpack' };
+  const tier = inventoryTier(inv);
+  if (item.backpackTier <= tier) return { ok: false, reason: 'already_unlocked' };
+  if (item.backpackTier !== tier + 1) return { ok: false, reason: 'needs_previous' };
+  const capacity = BACKPACK_TIERS[item.backpackTier].capacity;
+  return { ok: true, reason: null, tier: item.backpackTier, from: inv.slots.length, capacity, added: capacity - inv.slots.length };
+}
+// Transação atômica: o plano completo é montado numa cópia e só então aplicado de uma vez.
+function useBackpack(inv, index) {
+  const check = backpackUseCheck(inv, index);
+  if (!check.ok) return check;
+  const slots = inv.slots.map((stack) => (stack ? { itemId: stack.itemId, quantity: stack.quantity } : null));
+  slots[index] = null;
+  while (slots.length < check.capacity) slots.push(null);
+  if (slots.length !== check.capacity) return { ok: false, reason: 'invalid_inventory' };
+  const previous = { slots: inv.slots, tier: inv.backpackTier };
+  try {
+    inv.slots = slots;
+    inv.backpackTier = check.tier;
+  } catch (error) {
+    inv.slots = previous.slots;
+    inv.backpackTier = previous.tier;
+    return { ok: false, reason: 'invalid_inventory' };
+  }
+  return check;
+}
+
+function restoreInventory(data, legacyMaterials = null) {
+  const inv = createInventory();
+  if (data === null || data === undefined) {
+    // This path is chosen by the save loader only for an old schema. New saves
+    // restore their inventory directly and never add the old counters again.
+    if (legacyMaterials && typeof legacyMaterials === 'object') {
+      for (const itemId of ['wood','stone','ore']) {
+        const amount = legacyMaterials[itemId];
+        if (Number.isSafeInteger(amount) && amount > 0)
+          inv.pending[itemId] = addItems(inv, itemId, amount);
+      }
+    }
+    return inv;
+  }
+  if (typeof data !== 'object' || Array.isArray(data)) return inv;
+  if (Number.isInteger(data.selected) && data.selected >= 0 && data.selected < HOTBAR_SIZE)
+    inv.selected = data.selected;
+  if (data.pending && typeof data.pending === 'object') {
+    for (const itemId of Object.keys(ITEM_TYPES)) {
+      const amount = data.pending[itemId];
+      if (Number.isSafeInteger(amount) && amount >= 0) inv.pending[itemId] = amount;
+    }
+  }
+  const overflow = [];
+  const readStack = (stack, allowSlot) => {
+    if (
+      !stack ||
+      typeof stack !== 'object' ||
+      Array.isArray(stack) ||
+      !inventoryItem(stack.itemId) ||
+      !Number.isSafeInteger(stack.quantity) ||
+      stack.quantity <= 0
+    )
+      return null;
+    const quantity = allowSlot ? Math.min(stack.quantity, inventoryItem(stack.itemId).maxStack) : 0;
+    const excess = stack.quantity - quantity;
+    if (excess) overflow.push({ itemId: stack.itemId, quantity: excess });
+    return quantity ? { itemId: stack.itemId, quantity } : null;
+  };
+  // v0.7: a capacidade vem do nível salvo (ausente = nível 0, como nos saves da v0.6). Posições ocupadas
+  // além da capacidade elevam o nível para que nenhum item seja descartado.
+  let tier = Number.isInteger(data.backpackTier) && Object.hasOwn(BACKPACK_TIERS, data.backpackTier) ? data.backpackTier : 0;
+  if (Array.isArray(data.slots))
+    data.slots.forEach((entry, i) => {
+      if (entry && typeof entry === 'object' && inventoryItem(entry.itemId))
+        while (tier < 2 && i >= BACKPACK_TIERS[tier].capacity) tier++;
+    });
+  inv.backpackTier = tier;
+  inv.slots = Array(BACKPACK_TIERS[tier].capacity).fill(null);
+  const cap = inv.slots.length;
+  // Restore every valid in-range position first so recovery cannot displace it.
+  if (Array.isArray(data.slots)) {
+    for (let i = 0; i < data.slots.length; i++) {
+      const stack = readStack(data.slots[i], i < cap);
+      if (i < cap) inv.slots[i] = stack;
+    }
+  }
+  inv.cursor = readStack(data.cursor, true);
+  // Excess from malformed overfull slots/cursor or extra saved positions is
+  // recovered, not turned into additional storage slots. Keep visible escrow
+  // if the sixteen regular slots cannot hold it.
+  for (const stack of overflow) {
+    const remainder = addItems(inv, stack.itemId, stack.quantity);
+    if (Number.isSafeInteger(inv.pending[stack.itemId] + remainder))
+      inv.pending[stack.itemId] += remainder;
+    // An aggregate beyond MAX_SAFE_INTEGER is corrupt/unrepresentable data;
+    // leave the prior valid escrow untouched rather than round its quantity.
+  }
+  return inv;
+}
+
+function serializeInventory(inv) {
+  if (!inventoryReady(inv)) return serializeInventory(restoreInventory(inv));
+  const pending = emptyItemCounts();
+  for (const itemId of Object.keys(ITEM_TYPES)) {
+    const amount = inv.pending && inv.pending[itemId];
+    if (Number.isSafeInteger(amount) && amount >= 0) pending[itemId] = amount;
+  }
+  return {
+    slots: inv.slots.map((stack) => (stack ? { ...stack } : null)),
+    backpackTier: inventoryTier(inv),
+    cursor: inv.cursor ? { ...inv.cursor } : null,
+    selected:
+      Number.isInteger(inv.selected) && inv.selected >= 0 && inv.selected < HOTBAR_SIZE
+        ? inv.selected
+        : 0,
+    pending,
+    migrationVersion: 1,
+  };
+}
+// ===== Fim do modelo de inventário =====
+// ===== Crafting v0.5: modelo =====
+// Recipes are independent data; neither saves nor the interface can alter them.
+const MAX_CRAFT_UNITS = MAX_INVENTORY_SIZE * DEFAULT_MAX_STACK;
+
+function craftDataValue(record, key) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return undefined;
+  const descriptor = Object.getOwnPropertyDescriptor(record, key);
+  return descriptor && Object.hasOwn(descriptor, 'value') ? descriptor.value : undefined;
+}
+
+function craftTechnicalId(value) {
+  return typeof value === 'string' && /^[a-z][a-z0-9_]*$/.test(value) && value.length <= 80;
+}
+
+function craftPositiveQuantity(value) {
+  return Number.isSafeInteger(value) && value > 0 && value <= MAX_CRAFT_UNITS;
+}
+
+function craftCatalogItem(catalog, itemId) {
+  if (!craftTechnicalId(itemId)) return null;
+  const item = craftDataValue(catalog, itemId);
+  const maxStack = craftDataValue(item, 'maxStack');
+  return Number.isSafeInteger(maxStack) && maxStack > 0 && maxStack <= DEFAULT_MAX_STACK
+    ? item
+    : null;
+}
+
+function validateCraftRecipe(definition, catalog = ITEM_TYPES) {
+  const invalid = () => ({ ok: false, reason: 'invalid_recipe' });
+  const id = craftDataValue(definition, 'id');
+  const name = craftDataValue(definition, 'name');
+  const category = craftDataValue(definition, 'category');
+  const ingredients = craftDataValue(definition, 'ingredients');
+  const output = craftDataValue(definition, 'output');
+  const station = craftDataValue(definition, 'station');
+  const available = craftDataValue(definition, 'available');
+  const order = craftDataValue(definition, 'order');
+  const requiresTier = craftDataValue(definition, 'requiresTier');
+  if (
+    !craftTechnicalId(id) ||
+    typeof name !== 'string' ||
+    !name.trim() ||
+    name.length > 120 ||
+    !craftTechnicalId(category) ||
+    !Array.isArray(ingredients) ||
+    !ingredients.length ||
+    !catalog ||
+    typeof catalog !== 'object' ||
+    ingredients.length > Object.keys(catalog).length ||
+    (station !== null && !craftTechnicalId(station)) ||
+    typeof available !== 'boolean' ||
+    !Number.isSafeInteger(order) ||
+    order < 0 ||
+    !(requiresTier === undefined || requiresTier === null || (Number.isInteger(requiresTier) && Object.hasOwn(BACKPACK_TIERS, requiresTier)))
+  )
+    return invalid();
+
+  const seen = new Set();
+  const normalizedIngredients = [];
+  for (const ingredient of ingredients) {
+    const itemId = craftDataValue(ingredient, 'itemId');
+    const quantity = craftDataValue(ingredient, 'quantity');
+    if (!craftCatalogItem(catalog, itemId) || !craftPositiveQuantity(quantity) || seen.has(itemId))
+      return invalid();
+    seen.add(itemId);
+    normalizedIngredients.push(Object.freeze({ itemId, quantity }));
+  }
+  const outputItemId = craftDataValue(output, 'itemId');
+  const outputQuantity = craftDataValue(output, 'quantity');
+  if (!craftCatalogItem(catalog, outputItemId) || !craftPositiveQuantity(outputQuantity))
+    return invalid();
+
+  // Only validated scalar fields are copied. Accessors and executable fields are never retained.
+  const recipe = Object.freeze({
+    id,
+    name: name.trim(),
+    category,
+    ingredients: Object.freeze(normalizedIngredients),
+    output: Object.freeze({ itemId: outputItemId, quantity: outputQuantity }),
+    station,
+    available,
+    order,
+    requiresTier: requiresTier === undefined ? null : requiresTier,
+  });
+  return { ok: true, reason: null, recipe };
+}
+
+function createCraftRecipeRegistry(definitions, catalog = ITEM_TYPES) {
+  const recipes = Object.create(null);
+  const errors = [];
+  if (!Array.isArray(definitions)) {
+    errors.push(Object.freeze({ index: null, id: null, reason: 'invalid_recipe' }));
+  } else {
+    definitions.forEach((definition, index) => {
+      const validation = validateCraftRecipe(definition, catalog);
+      const id = craftDataValue(definition, 'id');
+      if (!validation.ok) {
+        errors.push(
+          Object.freeze({
+            index,
+            id: typeof id === 'string' ? id : null,
+            reason: validation.reason,
+          }),
+        );
+      } else if (Object.hasOwn(recipes, validation.recipe.id)) {
+        errors.push(Object.freeze({ index, id: validation.recipe.id, reason: 'duplicate_recipe' }));
+      } else {
+        recipes[validation.recipe.id] = validation.recipe;
+      }
+    });
+  }
+  return Object.freeze({ recipes: Object.freeze(recipes), errors: Object.freeze(errors) });
+}
+
+const CRAFT_RECIPES = createCraftRecipeRegistry([
+  {
+    id: 'recipe_stick',
+    name: 'Graveto',
+    category: 'basic',
+    ingredients: [{ itemId: 'wood', quantity: 1 }],
+    output: { itemId: 'stick', quantity: 2 },
+    station: null,
+    available: true,
+    order: 1,
+  },
+  {
+    id: 'recipe_plank',
+    name: 'Tábua',
+    category: 'basic',
+    ingredients: [{ itemId: 'wood', quantity: 2 }],
+    output: { itemId: 'plank', quantity: 2 },
+    station: null,
+    available: true,
+    order: 2,
+  },
+  {
+    id: 'recipe_chipped_stone',
+    name: 'Pedra lascada',
+    category: 'basic',
+    ingredients: [{ itemId: 'stone', quantity: 1 }],
+    output: { itemId: 'chipped_stone', quantity: 2 },
+    station: null,
+    available: true,
+    order: 3,
+  },
+  {
+    id: 'recipe_simple_handle',
+    name: 'Cabo simples',
+    category: 'components',
+    ingredients: [
+      { itemId: 'stick', quantity: 2 },
+      { itemId: 'plank', quantity: 1 },
+    ],
+    output: { itemId: 'simple_handle', quantity: 1 },
+    station: null,
+    available: true,
+    order: 4,
+  },
+  {
+    id: 'recipe_primitive_component',
+    name: 'Peça primitiva',
+    category: 'components',
+    ingredients: [
+      { itemId: 'simple_handle', quantity: 1 },
+      { itemId: 'chipped_stone', quantity: 2 },
+    ],
+    output: { itemId: 'primitive_component', quantity: 1 },
+    station: null,
+    available: true,
+    order: 5,
+  },
+  {
+    id: 'recipe_stone_axe',
+    name: 'Machado de Pedra',
+    category: 'tools',
+    ingredients: [
+      { itemId: 'simple_handle', quantity: 1 },
+      { itemId: 'chipped_stone', quantity: 2 },
+      { itemId: 'stick', quantity: 1 },
+    ],
+    output: { itemId: 'stone_axe', quantity: 1 },
+    station: null,
+    available: true,
+    order: 6,
+  },
+  {
+    id: 'recipe_stone_pickaxe',
+    name: 'Picareta de Pedra',
+    category: 'tools',
+    ingredients: [
+      { itemId: 'simple_handle', quantity: 1 },
+      { itemId: 'chipped_stone', quantity: 3 },
+      { itemId: 'stick', quantity: 1 },
+    ],
+    output: { itemId: 'stone_pickaxe', quantity: 1 },
+    station: null,
+    available: true,
+    order: 7,
+  },
+  {
+    id: 'recipe_rustic_backpack',
+    name: 'Mochila Rústica',
+    category: 'backpacks',
+    ingredients: [
+      { itemId: 'plank', quantity: 12 },
+      { itemId: 'stick', quantity: 16 },
+      { itemId: 'simple_handle', quantity: 3 },
+    ],
+    output: { itemId: 'rustic_backpack', quantity: 1 },
+    station: null,
+    available: true,
+    order: 8,
+    requiresTier: 0,
+  },
+  {
+    id: 'recipe_reinforced_backpack',
+    name: 'Mochila Reforçada',
+    category: 'backpacks',
+    ingredients: [
+      { itemId: 'plank', quantity: 20 },
+      { itemId: 'primitive_component', quantity: 10 },
+      { itemId: 'ore', quantity: 8 },
+    ],
+    output: { itemId: 'reinforced_backpack', quantity: 1 },
+    station: null,
+    available: true,
+    order: 9,
+    requiresTier: 1,
+  },
+]).recipes;
+
+function countCraftMaterials(inv) {
+  const counts = Object.fromEntries(Object.keys(ITEM_TYPES).map((itemId) => [itemId, 0]));
+  if (!inventoryReady(inv)) return counts;
+  // The cursor and pending migration items are deliberately not ingredients.
+  for (const stack of inv.slots) if (stack) counts[stack.itemId] += stack.quantity;
+  return counts;
+}
+
+function craftRecipeFromRegistry(recipeId, registry) {
+  if (!craftTechnicalId(recipeId) || !registry || !Object.hasOwn(registry, recipeId))
+    return { ok: false, reason: 'unknown_recipe' };
+  const validation = validateCraftRecipe(craftDataValue(registry, recipeId));
+  if (!validation.ok || validation.recipe.id !== recipeId)
+    return { ok: false, reason: 'invalid_recipe' };
+  if (!validation.recipe.available || validation.recipe.station !== null)
+    return { ok: false, reason: 'unavailable' };
+  return validation;
+}
+
+function simulateCraft(inv, recipeId, times = 1, registry = CRAFT_RECIPES) {
+  const validation = craftRecipeFromRegistry(recipeId, registry);
+  if (!validation.ok) return validation;
+  if (!craftPositiveQuantity(times)) return { ok: false, reason: 'invalid_quantity' };
+  if (!inventoryReady(inv)) return { ok: false, reason: 'invalid_inventory' };
+  if (inv.cursor !== null) return { ok: false, reason: 'cursor_busy' };
+
+  const recipe = validation.recipe;
+  // v0.7: mochilas só podem ser fabricadas no nível de capacidade exigido pela receita.
+  if (recipe.requiresTier !== null && inventoryTier(inv) !== recipe.requiresTier) return { ok: false, reason: 'requirement' };
+  const required = recipe.ingredients.map(({ itemId, quantity }) => ({
+    itemId,
+    quantity: quantity * times,
+  }));
+  const output = { itemId: recipe.output.itemId, quantity: recipe.output.quantity * times };
+  if (
+    required.some(({ quantity }) => !Number.isSafeInteger(quantity)) ||
+    !Number.isSafeInteger(output.quantity)
+  )
+    return { ok: false, reason: 'invalid_quantity' };
+  const details = { required, output, times };
+  const counts = countCraftMaterials(inv);
+  if (required.some(({ itemId, quantity }) => counts[itemId] < quantity))
+    return { ok: false, reason: 'missing_ingredients', ...details };
+  if (output.quantity > MAX_CRAFT_UNITS) return { ok: false, reason: 'no_space', ...details };
+
+  const planned = {
+    slots: inv.slots.map((stack) =>
+      stack ? { itemId: stack.itemId, quantity: stack.quantity } : null,
+    ),
+    cursor: null,
+    backpackTier: inventoryTier(inv),
+  };
+  // Consume ordinary backpack slots before the first nine linked hotbar slots.
+  for (const ingredient of required) {
+    let remaining = ingredient.quantity;
+    for (let index = planned.slots.length - 1; index >= 0 && remaining; index--) {
+      const stack = planned.slots[index];
+      if (!stack || stack.itemId !== ingredient.itemId) continue;
+      const consumed = Math.min(remaining, stack.quantity);
+      stack.quantity -= consumed;
+      remaining -= consumed;
+      if (!stack.quantity) planned.slots[index] = null;
+    }
+    if (remaining) return { ok: false, reason: 'invalid_inventory', ...details };
+  }
+  // Capacity is measured after consumption; a freed ingredient slot can hold the result.
+  if (addItems(planned, output.itemId, output.quantity) !== 0)
+    return { ok: false, reason: 'no_space', ...details };
+  if (!inventoryReady(planned)) return { ok: false, reason: 'invalid_inventory', ...details };
+  return { ok: true, reason: null, slots: planned.slots, ...details };
+}
+
+function executeCraft(inv, recipeId, times = 1, registry = CRAFT_RECIPES) {
+  // Revalidate current slots for every event, never commit a plan cached by the interface.
+  const result = simulateCraft(inv, recipeId, times, registry);
+  if (!result.ok) return result;
+  const descriptor = Object.getOwnPropertyDescriptor(inv, 'slots');
+  if (!descriptor || !Object.hasOwn(descriptor, 'value') || !descriptor.writable)
+    return { ok: false, reason: 'invalid_inventory' };
+  // One assignment commits the transaction and preserves inventory identity and metadata.
+  inv.slots = result.slots;
+  return result;
+}
+
+function getMaxCraftable(inv, recipeId, registry = CRAFT_RECIPES) {
+  const validation = craftRecipeFromRegistry(recipeId, registry);
+  if (!validation.ok || !inventoryReady(inv) || inv.cursor !== null) return 0;
+  const counts = countCraftMaterials(inv);
+  let bound = Math.floor(MAX_CRAFT_UNITS / validation.recipe.output.quantity);
+  for (const { itemId, quantity } of validation.recipe.ingredients)
+    bound = Math.min(bound, Math.floor(counts[itemId] / quantity));
+  // Capacity is not monotonic: a larger batch may free a slot that a smaller one does not.
+  // The fixed sixteen-slot inventory bounds this search to at most 3200 simulations.
+  for (let times = bound; times > 0; times--)
+    if (simulateCraft(inv, recipeId, times, registry).ok) return times;
+  return 0;
+}
+// ===== Fim do modelo de crafting =====
+
+
+// ===== Inventário v0.4: interface =====
+// ===== Interface de inventário v0.4 =====
+let inventoryUIReady = false;
+let inventoryUIWorld = null;
+let inventoryUISelected = -1;
+let inventoryUIQuickSelection = -1;
+let inventoryUIHover = null;
+const inventoryUIPointer = { x: 0, y: 0, known: false };
+
+function inventoryUIActive() {
+  return !!G && !busy && $('m').style.display === 'none';
+}
+
+function setInventoryStatus(message) {
+  if (inventoryUIReady) $('inventory-status').textContent = message;
+}
+
+function inventorySlotDescription(index, stack, hotbar) {
+  const prefix = hotbar ? 'Atalho ' + (index + 1) : 'Espaço ' + (index + 1);
+  return prefix + (stack ? ': ' + ITEM_TYPES[stack.itemId].name + ', ' + stack.quantity + ' de ' + ITEM_TYPES[stack.itemId].maxStack : ': vazio');
+}
+
+function fillInventoryButton(button, stack, index, hotbar) {
+  const icon = button.querySelector('.item-icon');
+  const quantity = button.querySelector('.item-quantity');
+  button.dataset.itemId = stack ? stack.itemId : '';
+  button.dataset.quantity = stack ? String(stack.quantity) : '';
+  button.classList.toggle('is-occupied', !!stack);
+  button.classList.toggle('is-empty', !stack);
+  const selected = hotbar ? G.inventory.selected === index : inventoryUISelected === index;
+  button.classList.toggle('is-selected', selected);
+  button.setAttribute('aria-pressed', String(selected));
+  button.setAttribute('aria-label', inventorySlotDescription(index, stack, hotbar));
+  icon.dataset.item = stack ? stack.itemId : '';
+  icon.hidden = !stack;
+  quantity.textContent = stack ? String(stack.quantity) : '';
+  quantity.hidden = !stack || ITEM_TYPES[stack.itemId].maxStack === 1;
+}
+
+function positionInventoryUI() {
+  if (!inventoryUIReady) return;
+  const canvasRect = cv.getBoundingClientRect();
+  const wrapperRect = $('w').getBoundingClientRect();
+  const hotbar = $('hotbar');
+  const available = Math.max(180, canvasRect.width - 20);
+  const scale = canvasRect.width / W0;
+  const gap = Math.max(2, Math.min(4, Math.round(4 * scale)));
+  const size = Math.max(18, Math.min(52, Math.max(24, Math.floor(48 * scale)), Math.floor((available - 14 - gap * 8) / HOTBAR_SIZE)));
+  hotbar.style.left = canvasRect.left - wrapperRect.left + canvasRect.width / 2 + 'px';
+  hotbar.style.top = canvasRect.bottom - wrapperRect.top - Math.max(6, 10 * scale) + 'px';
+  hotbar.style.setProperty('--hotbar-slot', size + 'px');
+  hotbar.style.setProperty('--hotbar-gap', gap + 'px');
+  hotbar.style.setProperty('--hotbar-key', Math.max(8, Math.min(10, size / 4.4)) + 'px');
+  hotbar.style.setProperty('--hotbar-quantity', Math.max(8, Math.min(13, size / 3.6)) + 'px');
+  hotbar.style.setProperty('--hotbar-icon', String(Math.max(0.55, Math.min(1, size / 42))));
+  positionInventoryFloating($('inventory-cursor'), 15, 16);
+  refreshInventoryTooltip();
+}
+
+function positionInventoryFloating(element, offsetX, offsetY) {
+  if (!inventoryUIReady || element.hidden) return;
+  const bounds = element.getBoundingClientRect();
+  const x = inventoryUIPointer.known ? inventoryUIPointer.x : innerWidth / 2;
+  const y = inventoryUIPointer.known ? inventoryUIPointer.y : innerHeight / 2;
+  element.style.left = Math.max(4, Math.min(innerWidth - bounds.width - 4, x + offsetX)) + 'px';
+  element.style.top = Math.max(4, Math.min(innerHeight - bounds.height - 4, y + offsetY)) + 'px';
+}
+
+// Presentation only: this card reads the existing inventory without changing it.
+function renderInventoryDetails() {
+  if (!inventoryUIReady || !inventoryUIActive() || !inventoryOpen) return;
+  const card = $('inventory-details');
+  if (!card) return;
+  const inv = G.inventory;
+  const hover = inventoryUIHover && inventoryUIHover.isConnected ? inventoryUIHover : null;
+  const index = hover ? Number(hover.dataset[hover.hasAttribute('data-hotbar') ? 'hotbar' : 'slot']) : inventoryUISelected;
+  const stack = inv.cursor || inv.slots[index] || null;
+  const item = stack ? ITEM_TYPES[stack.itemId] : null;
+  const total = item ? inventoryTotals(inv)[item.id] : inv.slots.filter(Boolean).length;
+  const key = (item ? item.id + ':' + stack.quantity : 'empty') + ':' + total;
+  if (card.dataset.previewKey === key) return;
+  card.dataset.previewKey = key;
+  $('inventory-detail-icon').hidden = !item;
+  $('inventory-detail-icon').dataset.item = item ? item.id : '';
+  $('inventory-detail-empty').hidden = !!item;
+  $('inventory-detail-name').textContent = item ? item.name.toUpperCase() : 'ESPAÇO LIVRE';
+  $('inventory-detail-category').textContent = item ? (item.category === 'backpack' ? '[ MOCHILA DE EXPANSÃO ]' : item.category === 'tool' ? '[ FERRAMENTA ]' : item.category === 'component' ? '[ COMPONENTE ]' : '[ MATERIAL ]') : '[ MOCHILA ]';
+  $('inventory-detail-quantity').textContent = item ? stack.quantity + ' / ' + item.maxStack : '— / 200';
+  $('inventory-detail-total-label').textContent = item ? 'TOTAL' : 'OCUPADOS';
+  $('inventory-detail-total').textContent = item ? String(total) : total + ' / ' + G.inventory.slots.length;
+  $('inventory-detail-description').textContent = item ? item.description : 'Passe o mouse sobre um material para ver seus detalhes.';
+}
+
+function refreshInventoryTooltip() {
+  if (!inventoryUIReady) return;
+  renderInventoryDetails();
+  const tooltip = $('inventory-tooltip');
+  if (!inventoryUIActive() || mapOpen || (inventoryUIHover && !inventoryOpen && inventoryUIHover.hasAttribute('data-slot'))) {
+    inventoryUIHover = null;
+    tooltip.hidden = true;
+    return;
+  }
+  if (!inventoryUIHover || !inventoryUIHover.isConnected || G.inventory.cursor) {
+    tooltip.hidden = true;
+    return;
+  }
+  const hotbar = inventoryUIHover.hasAttribute('data-hotbar');
+  const index = Number(inventoryUIHover.dataset[hotbar ? 'hotbar' : 'slot']);
+  const stack = G.inventory.slots[index];
+  tooltip.textContent = inventorySlotDescription(index, stack, hotbar);
+  tooltip.hidden = false;
+  positionInventoryFloating(tooltip, 14, 18);
+}
+
+function updateInventoryCursor(event) {
+  if (!inventoryUIReady) return;
+  if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+    inventoryUIPointer.x = event.clientX;
+    inventoryUIPointer.y = event.clientY;
+    inventoryUIPointer.known = true;
+  }
+  const cursor = $('inventory-cursor');
+  cursor.hidden = !inventoryUIActive() || !inventoryOpen || !G.inventory.cursor;
+  if (!cursor.hidden) {
+    cursor.querySelector('.item-icon').dataset.item = G.inventory.cursor.itemId;
+    cursor.querySelector('.item-quantity').textContent = G.inventory.cursor.quantity;
+    positionInventoryFloating(cursor, 15, 16);
+  }
+  refreshInventoryTooltip();
+}
+
+// v0.7: a grade acompanha a capacidade real (expansão, troca de mundo, carregamento).
+function syncInventoryGrid() {
+  const grid = $('inventory-grid'), n = G.inventory.slots.length, tier = BACKPACK_TIERS[inventoryTier(G.inventory)];
+  if (grid.children.length !== n) {
+    grid.textContent = '';
+    for (let i = 0; i < n; i++) grid.append(makeInventoryButton(i, false));
+  }
+  grid.style.gridTemplateColumns = 'repeat(' + tier.columns + ',minmax(0,1fr))';
+  grid.setAttribute('aria-label', tier.name + ': ' + n + ' espaços');
+}
+function renderBackpackAction() {
+  const box = $('inventory-backpack'), stack = G.inventory.slots[inventoryUISelected] || null;
+  const item = stack ? inventoryItem(stack.itemId) : null;
+  if (!item || item.category !== 'backpack') { box.hidden = true; return; }
+  const check = backpackUseCheck(G.inventory, inventoryUISelected), target = BACKPACK_TIERS[item.backpackTier], current = G.inventory.slots.length;
+  $('inventory-backpack-info').textContent = item.name + '. Capacidade atual: ' + current + '. Nova capacidade: ' + target.capacity +
+    '. Espaços adicionais: ' + Math.max(0, target.capacity - current) + '.' + (check.ok ? '' : ' Bloqueada: ' + BACKPACK_REASONS[check.reason] + '.');
+  $('inventory-use-backpack').disabled = !check.ok;
+  box.hidden = false;
+}
+let useBackpackBusy = false;
+function useBackpackFromUI(event) {
+  if (event) { event.preventDefault(); event.stopPropagation(); }
+  if (!G || !inventoryOpen || !sessionInputActive() || useBackpackBusy) return;
+  useBackpackBusy = true;
+  try {
+    const result = useBackpack(G.inventory, inventoryUISelected);
+    if (!result.ok) {
+      setInventoryStatus('Não foi possível usar: ' + (BACKPACK_REASONS[result.reason] || 'operação rejeitada') + '. Nada foi consumido.');
+      renderInventoryUI();
+      return;
+    }
+    inventoryChanged();
+    setInventoryStatus('Mochila usada: agora são ' + result.capacity + ' espaços.');
+    save(true);
+  } finally {
+    useBackpackBusy = false;
+  }
+}
+
+function renderInventoryUI() {
+  if (!inventoryUIReady) return;
+  const active = inventoryUIActive();
+  const overlay = $('inventory-overlay');
+  overlay.hidden = !active || !inventoryOpen;
+  $('hotbar').hidden = !active || !!mapOpen;
+  if (!active) {
+    $('inventory-cursor').hidden = true;
+    $('inventory-tooltip').hidden = true;
+    return;
+  }
+  if (inventoryUIWorld !== G.id) {
+    inventoryUIWorld = G.id;
+    inventoryUISelected = G.inventory.selected;
+    inventoryUIQuickSelection = G.inventory.selected;
+    inventoryUIHover = null;
+    setInventoryStatus(G.inventory.cursor ? 'Pilha pendente recuperada. Coloque-a na mochila para continuar.' : 'Organize os materiais com o mouse.');
+  }
+  if (inventoryUIQuickSelection !== G.inventory.selected) {
+    inventoryUISelected = G.inventory.selected;
+    inventoryUIQuickSelection = G.inventory.selected;
+  }
+  syncInventoryGrid();
+  {
+    const used = G.inventory.slots.filter(Boolean).length, tier = inventoryTier(G.inventory);
+    $('inventory-capacity').textContent = used + '/' + G.inventory.slots.length;
+    $('inventory-tier-info').textContent = 'Inventário: ' + used + '/' + G.inventory.slots.length + ' slots ocupados · ' + BACKPACK_TIERS[tier].name + ' — Nível ' + tier;
+    renderBackpackAction();
+  }
+  for (const button of $('inventory-grid').children) {
+    const index = Number(button.dataset.slot);
+    fillInventoryButton(button, G.inventory.slots[index], index, false);
+  }
+  for (const button of $('hotbar').children) {
+    const index = Number(button.dataset.hotbar);
+    fillInventoryButton(button, G.inventory.slots[index], index, true);
+  }
+  const pending = Object.entries(G.inventory.pending || {}).filter(([, amount]) => amount > 0);
+  $('inventory-pending').hidden = pending.length === 0;
+  $('inventory-pending-text').textContent = pending.length ? 'Materiais preservados da migração: ' + pending.map(([id, amount]) => amount + ' ' + ITEM_TYPES[id].name).join(' · ') + '. Libere espaços e recolha-os.' : '';
+  updateInventoryCursor();
+  positionInventoryUI();
+}
+
+function clearInventoryUI() {
+  if (!inventoryUIReady) return;
+  inventoryUIWorld = null;
+  inventoryUISelected = -1;
+  inventoryUIQuickSelection = -1;
+  inventoryUIHover = null;
+  for (const id of ['inventory-overlay', 'hotbar', 'inventory-cursor', 'inventory-tooltip']) $(id).hidden = true;
+}
+
+function handleInventorySlot(event, index) {
+  if ((event.button !== 0 && event.button !== 2) || !inventoryOpen || !sessionInputActive()) return;
+  event.preventDefault();
+  event.stopPropagation();
+  updateInventoryCursor(event);
+  const inventory = G.inventory;
+  const held = inventory.cursor ? { ...inventory.cursor } : null;
+  const target = inventory.slots[index] ? { ...inventory.slots[index] } : null;
+  inventoryUISelected = index;
+  if (!inventorySlotClick(inventory, index, event.button)) {
+    renderInventoryUI();
+    if (held && target && held.itemId !== target.itemId && event.button === 2) setInventoryStatus('Esse espaço contém outro material. Use o esquerdo para trocar.');
+    else if (held && target && target.quantity >= ITEM_TYPES[target.itemId].maxStack) setInventoryStatus('Essa pilha já está completa. Escolha outro espaço.');
+    else setInventoryStatus(held ? 'Não foi possível colocar a pilha nesse espaço.' : 'Espaço vazio.');
+    return;
+  }
+  inventoryChanged();
+  if (!held) setInventoryStatus(event.button === 2 ? 'Pilha dividida. Escolha onde colocar os itens do cursor.' : 'Pilha no cursor. Escolha outro espaço.');
+  else if (target && target.itemId !== held.itemId) setInventoryStatus('Pilhas trocadas sem perda de materiais.');
+  else if (target) setInventoryStatus(inventory.cursor ? 'Pilha completada; o excedente continua no cursor.' : 'Materiais agrupados.');
+  else setInventoryStatus(event.button === 2 ? 'Uma unidade colocada.' : 'Pilha colocada.');
+}
+
+function makeInventoryButton(index, hotbar) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = hotbar ? 'hotbar-slot' : 'inv-slot' + (index < HOTBAR_SIZE ? ' is-quick' : '');
+  button.dataset[hotbar ? 'hotbar' : 'slot'] = index;
+  const key = document.createElement('span');
+  key.className = 'slot-key';
+  key.textContent = hotbar || index < HOTBAR_SIZE ? String(index + 1) : '·';
+  const icon = document.createElement('span');
+  icon.className = 'item-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  const quantity = document.createElement('span');
+  quantity.className = 'item-quantity';
+  button.append(key, icon, quantity);
+  button.addEventListener('mousedown', event => {
+    if (hotbar) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.button !== 0 || !sessionInputActive() || mapOpen) return;
+      if (selectInventorySlot(G.inventory, index)) inventoryChanged();
+      else renderInventoryUI();
+    } else handleInventorySlot(event, index);
+  });
+  // Keyboard activation has no mousedown; real mouse clicks are handled once above.
+  button.addEventListener('click', event => {
+    event.stopPropagation();
+    if (event.detail !== 0) return;
+    if (hotbar) {
+      if (sessionInputActive() && !mapOpen && selectInventorySlot(G.inventory, index)) inventoryChanged();
+    } else handleInventorySlot({ button: 0, preventDefault() {}, stopPropagation() {} }, index);
+  });
+  button.addEventListener('mouseenter', () => { inventoryUIHover = button; refreshInventoryTooltip(); });
+  button.addEventListener('mouseleave', () => { if (inventoryUIHover === button) inventoryUIHover = null; refreshInventoryTooltip(); });
+  button.addEventListener('focus', () => { inventoryUIHover = button; refreshInventoryTooltip(); });
+  button.addEventListener('blur', () => { if (inventoryUIHover === button) inventoryUIHover = null; refreshInventoryTooltip(); });
+  return button;
+}
+
+function initInventoryUI() {
+  if (inventoryUIReady) return;
+  inventoryUIReady = true;
+  for (let i = 0; i < INITIAL_INVENTORY_SIZE; i++) $('inventory-grid').append(makeInventoryButton(i, false));
+  for (let i = 0; i < HOTBAR_SIZE; i++) $('hotbar').append(makeInventoryButton(i, true));
+  $('inventory-use-backpack').addEventListener('click', useBackpackFromUI);
+  const stop = event => event.stopPropagation();
+  for (const id of ['inventory-overlay', 'hotbar']) {
+    for (const type of ['mousedown', 'mouseup', 'click', 'dblclick', 'wheel']) $(id).addEventListener(type, stop);
+    $(id).addEventListener('contextmenu', event => { event.preventDefault(); event.stopPropagation(); });
+  }
+  $('inventory-close').addEventListener('click', () => {
+    if (!setInventoryOpen(false)) setInventoryStatus('Não há espaço para devolver tudo. Organize a mochila; a pilha continua protegida no cursor.');
+  });
+  $('inventory-claim-pending').addEventListener('click', () => {
+    if (!inventoryOpen || !sessionInputActive()) return;
+    const inserted = claimPendingInventory(G.inventory);
+    if (inserted > 0) { inventoryChanged(); setInventoryStatus(inserted + ' unidades pendentes guardadas na mochila.'); }
+    else setInventoryStatus('Sem espaço compatível. Libere espaços antes de recolher os materiais pendentes.');
+  });
+  document.addEventListener('mousemove', updateInventoryCursor);
+  addEventListener('resize', positionInventoryUI);
+  addEventListener('blur', () => { inventoryUIHover = null; $('inventory-tooltip').hidden = true; });
+  renderInventoryUI();
+}
+
+
+// ===== Fim da interface de inventário =====
+// ===== Crafting v0.5: interface =====
+// ===== Interface de fabricação: apenas apresenta dados e solicita transações =====
+let craftingUIReady = false;
+let craftingUIWorld = null;
+let craftingUISelectedRecipe = null;
+let craftingUISignature = null;
+let craftingUIWasOpen = false;
+
+function craftingUIRecipes() {
+  return Object.values(CRAFT_RECIPES).sort((a, b) => a.order - b.order);
+}
+
+function craftingUIReason(reason) {
+  const messages = {
+    unknown_recipe: 'Receita desconhecida.',
+    invalid_recipe: 'Esta receita possui dados inválidos.',
+    invalid_quantity: 'Quantidade de fabricações inválida.',
+    invalid_inventory: 'Não foi possível validar o inventário.',
+    cursor_busy: 'Coloque a pilha do cursor na mochila antes de fabricar.',
+    missing_ingredients: 'Materiais insuficientes.',
+    no_space: 'Inventário sem espaço para o resultado.',
+    requirement: 'Esta mochila exige o nível anterior e só pode ser fabricada uma vez por nível.',
+    unavailable: 'Esta receita não está disponível.',
+    ui_inactive: 'Abra a fabricação durante uma partida para continuar.',
+    busy: 'Aguarde a fabricação em andamento.',
+  };
+  return messages[reason] || 'Não foi possível realizar esta fabricação.';
+}
+
+function craftingUIActive() {
+  return craftingUIReady && sessionInputActive() && !mapOpen;
+}
+
+function setCraftingStatus(text) {
+  if (!craftingUIReady) return;
+  $('crafting-status').textContent = text;
+}
+
+function renderCraftSaveState() {
+  if (!craftingUIReady) return;
+  const element = $('crafting-save-state');
+  if (!G) {
+    element.textContent = '';
+    element.className = '';
+    return;
+  }
+  const pending = !!(G.unsavedChanges || G.collection?.dirty || G.saveDueAt > 0);
+  element.classList.toggle('is-error', !!G.lastSaveFailed);
+  element.classList.toggle('is-pending', pending && !G.lastSaveFailed);
+  element.textContent = G.lastSaveFailed
+    ? 'Falha ao salvar. Alterações não salvas.'
+    : pending
+      ? 'Alterações não salvas'
+      : 'Sem alterações pendentes';
+}
+
+function craftingUIIcon(itemId) {
+  const icon = document.createElement('span');
+  icon.className = 'item-icon';
+  icon.dataset.item = itemId;
+  icon.setAttribute('aria-hidden', 'true');
+  return icon;
+}
+
+function craftingUISelect(recipeId) {
+  if (!craftingUIActive() || !craftingOpen || !CRAFT_RECIPES[recipeId]) return;
+  craftingUISelectedRecipe = recipeId;
+  craftingUISignature = null;
+  setCraftingStatus('Escolha quantas vezes deseja fabricar a receita.');
+  renderCraftingUI();
+}
+
+function craftingUISubmit(quantity) {
+  if (!craftingUIActive() || !craftingOpen) return;
+  const recipeId = craftingUISelectedRecipe;
+  const recipe = CRAFT_RECIPES[recipeId];
+  if (!recipe) {
+    setCraftingStatus(craftingUIReason('unknown_recipe'));
+    return;
+  }
+  // MAX é consultado novamente no clique; nunca se usa a quantidade exibida como autorização.
+  const times = quantity === 'max' ? getMaxCraftable(G.inventory, recipeId) : quantity;
+  if (!Number.isSafeInteger(times) || times < 1) {
+    const check = simulateCraft(G.inventory, recipeId, 1);
+    setCraftingStatus(craftingUIReason(check.ok ? 'invalid_quantity' : check.reason));
+    craftingUISignature = null;
+    renderCraftingUI();
+    return;
+  }
+  const result = performCraft(recipeId, times);
+  if (result?.ok) {
+    const output = recipe.output;
+    setCraftingStatus(
+      'Fabricado: ' + times * output.quantity + ' × ' + ITEM_TYPES[output.itemId].name + '.',
+    );
+  } else {
+    setCraftingStatus(craftingUIReason(result?.reason));
+  }
+  renderCraftingUI();
+}
+
+function renderCraftingUI() {
+  if (!craftingUIReady) return;
+  const open = craftingUIActive() && craftingOpen;
+  $('crafting-overlay').hidden = !open;
+  if (!open) {
+    craftingUIWasOpen = false;
+    return;
+  }
+  if (craftingUIWorld !== G.id) {
+    craftingUIWorld = G.id;
+    craftingUISelectedRecipe = craftingUIRecipes()[0]?.id || null;
+    craftingUISignature = null;
+    setCraftingStatus('Escolha uma receita. Os materiais são usados diretamente da mochila.');
+  }
+  renderCraftSaveState();
+  const signature = JSON.stringify([
+    G.id,
+    G.inventory.slots,
+    G.inventory.cursor,
+    craftingUISelectedRecipe,
+  ]);
+  if (signature !== craftingUISignature) {
+    craftingUISignature = signature;
+    const counts = countCraftMaterials(G.inventory);
+    for (const button of $('crafting-recipes').querySelectorAll('[data-recipe]')) {
+      const recipeId = button.dataset.recipe;
+      const selected = recipeId === craftingUISelectedRecipe;
+      const check = simulateCraft(G.inventory, recipeId, 1);
+      button.classList.toggle('is-selected', selected);
+      button.classList.toggle('is-craftable', check.ok);
+      button.setAttribute('aria-pressed', String(selected));
+      button.querySelector('.crafting-recipe-state').textContent = check.ok
+        ? 'Pode fabricar 1×'
+        : check.reason === 'no_space'
+          ? 'Sem espaço para 1×'
+          : check.reason === 'missing_ingredients'
+            ? 'Falta material'
+            : check.reason === 'requirement'
+              ? 'Nível de mochila'
+              : 'Indisponível';
+    }
+    const recipe = CRAFT_RECIPES[craftingUISelectedRecipe];
+    if (recipe) {
+      const outputType = ITEM_TYPES[recipe.output.itemId];
+      $('crafting-result-icon').dataset.item = recipe.output.itemId;
+      $('crafting-name').textContent = recipe.name;
+      $('crafting-output').textContent =
+        'Produz ' + recipe.output.quantity + ' × ' + outputType.name + ' por fabricação.';
+      $('crafting-description').textContent = outputType.description || '';
+      const ingredientRows = recipe.ingredients.map((ingredient) => {
+        const row = document.createElement('div');
+        const available = counts[ingredient.itemId] || 0;
+        row.className = 'crafting-ingredient';
+        row.dataset.ingredient = ingredient.itemId;
+        row.classList.toggle('is-missing', available < ingredient.quantity);
+        row.append(craftingUIIcon(ingredient.itemId));
+        const label = document.createElement('span');
+        label.textContent =
+          ITEM_TYPES[ingredient.itemId].name +
+          ': ' +
+          available +
+          ' disponíveis / ' +
+          ingredient.quantity +
+          ' necessários';
+        row.append(label);
+        return row;
+      });
+      $('crafting-ingredients').replaceChildren(...ingredientRows);
+      const once = simulateCraft(G.inventory, recipe.id, 1);
+      const five = simulateCraft(G.inventory, recipe.id, 5);
+      // Somente a receita selecionada precisa do cálculo de capacidade máxima.
+      const max = getMaxCraftable(G.inventory, recipe.id);
+      const available = $('crafting-availability');
+      available.classList.toggle('is-unavailable', max < 1);
+      available.textContent =
+        max > 0
+          ? (once.ok ? 'Disponível' : 'Disponível em lote') + ' · máximo: ' + max + ' fabricações.'
+          : craftingUIReason(once.reason);
+      $('crafting-once').disabled = !once.ok;
+      $('crafting-once').title = once.ok
+        ? 'Executar esta receita uma vez'
+        : craftingUIReason(once.reason);
+      $('crafting-five').disabled = !five.ok;
+      $('crafting-five').title = five.ok
+        ? 'Executar esta receita cinco vezes'
+        : craftingUIReason(five.reason);
+      $('crafting-max').disabled = max < 1;
+      $('crafting-max').textContent = 'MÁXIMO (' + max + ')';
+      $('crafting-max').title =
+        max > 0 ? 'Fabricar o máximo que cabe na mochila' : craftingUIReason(once.reason);
+    } else {
+      $('crafting-name').textContent = 'Nenhuma receita disponível';
+      $('crafting-output').textContent = '';
+      $('crafting-description').textContent = '';
+      $('crafting-ingredients').replaceChildren();
+      $('crafting-availability').textContent = craftingUIReason('unknown_recipe');
+      for (const id of ['crafting-once', 'crafting-five', 'crafting-max']) $(id).disabled = true;
+    }
+  }
+  if (!craftingUIWasOpen) {
+    $('crafting-recipes').querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true });
+  }
+  craftingUIWasOpen = true;
+}
+
+function clearCraftingUI() {
+  // O menu inicial pode chamar este reset antes de a sessão G ser declarada.
+  if (!craftingUIReady) return;
+  craftingUIWorld = null;
+  craftingUISelectedRecipe = null;
+  craftingUISignature = null;
+  craftingUIWasOpen = false;
+  $('crafting-overlay').hidden = true;
+  $('crafting-status').textContent = '';
+  $('crafting-save-state').textContent = '';
+  $('crafting-save-state').className = '';
+}
+
+function initCraftingUI() {
+  if (craftingUIReady) return;
+  const list = $('crafting-recipes');
+  let previousCategory = null;
+  for (const recipe of craftingUIRecipes()) {
+    if (previousCategory !== recipe.category) {
+      previousCategory = recipe.category;
+      const heading = document.createElement('h3');
+      heading.className = 'crafting-category';
+      heading.textContent = recipe.category === 'basic' ? 'MATERIAIS BÁSICOS' : recipe.category === 'tools' ? 'FERRAMENTAS PRIMITIVAS' : recipe.category === 'backpacks' ? 'MOCHILAS' : 'COMPONENTES';
+      list.append(heading);
+    }
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'crafting-recipe';
+    button.dataset.recipe = recipe.id;
+    button.setAttribute('aria-pressed', 'false');
+    button.append(craftingUIIcon(recipe.output.itemId));
+    const label = document.createElement('span');
+    const name = document.createElement('span');
+    name.className = 'crafting-recipe-name';
+    name.textContent = recipe.name;
+    const state = document.createElement('span');
+    state.className = 'crafting-recipe-state';
+    state.textContent = 'Selecione para ver os materiais';
+    label.append(name, state);
+    button.append(label);
+    button.addEventListener('click', () => craftingUISelect(recipe.id));
+    list.append(button);
+  }
+  const overlay = $('crafting-overlay');
+  const stop = (event) => event.stopPropagation();
+  for (const type of ['mousedown', 'mouseup', 'click', 'dblclick', 'wheel']) {
+    overlay.addEventListener(type, stop);
+  }
+  overlay.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  $('crafting-close').addEventListener('click', () => setCraftingOpen(false));
+  $('crafting-once').addEventListener('click', () => craftingUISubmit(1));
+  $('crafting-five').addEventListener('click', () => craftingUISubmit(5));
+  $('crafting-max').addEventListener('click', () => craftingUISubmit('max'));
+  // A inicialização não consulta G: é segura antes da primeira partida.
+  craftingUIReady = true;
+}
+// ===== Fim da interface de fabricação =====
+
+// ===== Fim da interface de crafting =====
+// ===== Crafting v0.5: integração da sessão =====
+let craftingOpen = false;
+let craftingBusy = false;
+
+function setCraftingOpen(open) {
+  if (!sessionInputActive()) return false;
+  if (open && G.inventory.cursor) {
+    if (!inventoryOpen) setInventoryOpen(true);
+    toast('Coloque a pilha do cursor na mochila antes de abrir a fabricação.');
+    return false;
+  }
+  craftingOpen = !!open;
+  if (craftingOpen) {
+    inventoryOpen = false;
+    mapOpen = 0;
+  }
+  keys = {};
+  dr = 0;
+  G.mv = 0;
+  renderInventoryUI();
+  renderCraftingUI();
+  return true;
+}
+
+function performCraft(recipeId, times = 1) {
+  if (!sessionInputActive() || !craftingOpen) return { ok: false, reason: 'ui_inactive' };
+  if (craftingBusy) return { ok: false, reason: 'busy' };
+  craftingBusy = true;
+  let result = null;
+  try {
+    // The engine checks live slots, simulates all consumption/insertion, then
+    // commits one new slots array without replacing the inventory object.
+    result = executeCraft(G.inventory, recipeId, times);
+    if (result.ok) {
+      inventoryChanged();
+      setCraftingStatus('Fabricado: ' + result.output.quantity + ' × ' + ITEM_TYPES[result.output.itemId].name + '.');
+    } else {
+      renderCraftingUI();
+      setCraftingStatus(craftingUIReason(result.reason));
+    }
+    return result;
+  } catch (error) {
+    // A presentation error after a successful commit must not imply rollback or
+    // authorize a retry against old ingredients. Keep the committed result.
+    if (result && result.ok) {
+      G.unsavedChanges = true;
+      G.collection.dirty = true;
+      G.saveDueAt = performance.now() + 600;
+      setCraftingStatus('Fabricado em memória. Confira o inventário; alterações ainda não salvas.');
+      return result;
+    }
+    setCraftingStatus('Operação rejeitada. Nenhum ingrediente foi consumido.');
+    return { ok: false, reason: 'internal_error' };
+  } finally {
+    craftingBusy = false;
+  }
+}
+
+function safeSavedInventory(data) {
+  if (!data || typeof data !== 'object' || !Array.isArray(data.slots) || data.slots.length !== getInventoryCapacity(data)) return false;
+  if (!data.slots.every(stack => stack === null || isValidStack(stack))) return false;
+  if (data.cursor !== null && !isValidStack(data.cursor)) return false;
+  if (!Number.isInteger(data.selected) || data.selected < 0 || data.selected >= HOTBAR_SIZE) return false;
+  if (!data.pending || typeof data.pending !== 'object' || Array.isArray(data.pending)) return false;
+  return Object.entries(data.pending).every(([id, amount]) => inventoryItem(id) && Number.isSafeInteger(amount) && amount >= 0);
+}
+
+function save(q) {
+  if (!G || !G.id) return 0;
+  if (G.saveProtected || !inventoryReady(G.inventory) || !safeSavedInventory(G.inventory)) {
+    G.unsavedChanges = true;
+    G.lastSaveFailed = true;
+    toast('Alterações não salvas: o save anterior foi protegido porque o inventário requer recuperação.');
+    renderCraftSaveState();
+    return 0;
+  }
+  const result = saveSnapshot(q);
+  G.unsavedChanges = !result;
+  G.lastSaveFailed = !result;
+  renderCraftSaveState();
+  return result;
+}
+// ===== Fim da integração de crafting =====
+
+// ===== Integração do inventário com sessão, coleta e salvamento =====
+let inventoryOpen = false;
+function sessionInputActive() {
+  return !!G && !busy && $('m').style.display === 'none' &&
+    !document.querySelector('dialog[open], [aria-modal="true"]:not(#inventory-panel):not(#crafting-panel)');
+}
+function inventoryChanged() {
+  if (!G) return;
+  // Commit only after the synchronous operation has finished; debounce writes.
+  G.collection.dirty = true;
+  G.unsavedChanges = true;
+  G.saveDueAt = performance.now() + 600;
+  renderInventoryUI();
+  renderCraftingUI();
+}
+function setInventoryOpen(open) {
+  if (!sessionInputActive()) return false;
+  if (!open && G.inventory.cursor) {
+    const returned = returnInventoryCursor(G.inventory);
+    inventoryChanged();
+    if (!returned) {
+      toast('Sem espaço para devolver a pilha. Organize os slots antes de fechar.');
+      return false;
+    }
+  }
+  inventoryOpen = !!open;
+  if (inventoryOpen) {mapOpen = 0;craftingOpen = false;}
+  keys = {};
+  dr = 0;
+  G.mv = 0;
+  renderInventoryUI();
+  renderCraftingUI();
+  return true;
+}
+function connectInventoryMaterials() {
+  const inv = G.inventory;
+  // Compatibility view only: no independent counters or duplicate source of truth.
+  delete G.collection.materials;
+  Object.defineProperty(G.collection, 'materials', {
+    get: () => inventoryTotals(inv),
+    enumerable: false,
+  });
+}
+
+// ===== Coleta v0.3: parâmetros provisórios, sem ferramentas/inventário =====
+const RESOURCE_TYPES=Object.freeze({
+  1:Object.freeze({hp:3,kind:'wood',amount:3,label:'madeira'}),
+  2:Object.freeze({hp:4,kind:'stone',amount:2,label:'pedra'}),
+  3:Object.freeze({hp:5,kind:'ore',amount:1,label:'minério'})
+});
+const COLLECTION_RULES=Object.freeze({damage:1,cooldown:350,reach:80,pickup:24,feedback:650,warning:1000});
+const MATERIAL_NAMES=Object.freeze({wood:'madeira',stone:'pedra',ore:'minério'});
+function createCollection(){return{removed:new Set(),damage:new Map(),drops:new Map(),materials:{wood:0,stone:0,ore:0},lastHitAt:-Infinity,lastWarningAt:-Infinity,feedback:null,dirty:false}}
+function resourceBase(w,index){return{x:(index%w.N+.5)*T,y:Math.floor(index/w.N)*T+26}}
+function restoreCollection(w,data){
+  const c=createCollection();
+  if(!data||typeof data!=='object')return c;
+  const validIndex=i=>Number.isInteger(i)&&i>=0&&i<w.N*w.N;
+  // Keep original types only for modified nodes; never copy the whole object map.
+  const removedTypes=new Map();
+  if(Array.isArray(data.removed))for(const i of data.removed){
+    if(!validIndex(i)||!RESOURCE_TYPES[w.ob[i]]||w.ter[i]<3||w.ter[i]===8)continue;
+    c.removed.add(i);removedTypes.set(i,w.ob[i]);
+  }
+  for(const i of c.removed)w.ob[i]=0;
+  if(Array.isArray(data.damage))for(const entry of data.damage){
+    if(!Array.isArray(entry)||entry.length!==2)continue;
+    const [i,d]=entry,def=validIndex(i)?RESOURCE_TYPES[w.ob[i]]:null;
+    if(def&&!c.removed.has(i)&&Number.isInteger(d)&&d>0&&d<def.hp)c.damage.set(i,d);
+  }
+  if(data.materials&&typeof data.materials==='object')for(const kind of Object.keys(c.materials)){
+    const amount=data.materials[kind];
+    if(Number.isSafeInteger(amount)&&amount>=0)c.materials[kind]=amount;
+  }
+  if(Array.isArray(data.drops))for(const d of data.drops){
+    if(!d||typeof d!=='object'||typeof d.id!=='string'||!/^drop-\d+$/.test(d.id))continue;
+    const i=Number(d.id.slice(5)),def=RESOURCE_TYPES[removedTypes.get(i)];
+    if(!def||d.id!=='drop-'+i||c.drops.has(d.id)||d.kind!==def.kind||(!Number.isSafeInteger(d.amount)||d.amount<=0||d.amount>def.amount))continue;
+    if(!Number.isFinite(d.x)||!Number.isFinite(d.y)||d.x<0||d.y<0||d.x>=w.N*T||d.y>=w.N*T)continue;
+    if(Math.floor(d.x/T)!==i%w.N||Math.floor(d.y/T)!==Math.floor(i/w.N)||blocked(w,d.x,d.y,0))continue;
+    c.drops.set(d.id,{id:d.id,kind:d.kind,x:d.x,y:d.y,amount:d.amount});
+  }
+  return c;
+}
+function serializeCollection(c){return{removed:[...c.removed],damage:[...c.damage],drops:[...c.drops.values()].map(d=>({...d}))}}
+function worldInputActive(){return sessionInputActive()&&!inventoryOpen&&!craftingOpen}
+function canvasPoint(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W0/r.width,y:(e.clientY-r.top)*H0/r.height}}
+function screenToWorld(x,y){const v=G&&G.view;return v?{x:x/v.z+v.ox,y:y/v.z+v.oy}:null}
+function pickResource(wx,wy){
+  if(!G||!Number.isFinite(wx)||!Number.isFinite(wy))return -1;
+  const w=G.w,N=w.N;
+  if(wx<0||wy<0||wx>=N*T||wy>=N*T)return -1;
+  const cx=Math.floor(wx/T),cy=Math.floor(wy/T);
+  // Reverse painter order (row, then column). Tree crowns extend two tiles up.
+  for(let y=Math.min(N-1,cy+3);y>=Math.max(0,cy-1);y--)for(let x=Math.min(N-1,cx+1);x>=Math.max(0,cx-1);x--){
+    const i=y*N+x,o=w.ob[i];if(!RESOURCE_TYPES[o])continue;
+    const left=x*T-(o===1?16:0),top=y*T-(o===1?64:0),width=o===1?64:32,height=o===1?96:32;
+    if(wx>=left&&wx<left+width&&wy>=top&&wy<top+height)return i;
+  }
+  return -1;
+}
+function resourcePathClear(index){
+  const g=G,b=resourceBase(g.w,index),dx=b.x-g.px,dy=b.y-g.py,steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/4));
+  for(let s=0;s<=steps;s++)if(blocked(g.w,g.px+dx*s/steps,g.py+dy*s/steps,0,index))return false;
+  return true;
+}
+function collectionWarning(message,now){const c=G.collection;if(now-c.lastWarningAt>=COLLECTION_RULES.warning){toast(message);c.lastWarningAt=now}}
+function createResourceDrop(index,def){const b=resourceBase(G.w,index),id='drop-'+index;G.collection.drops.set(id,{id,kind:def.kind,x:b.x,y:b.y,amount:def.amount})}
+function destroyResource(index,def){
+  const g=G,c=g.collection;if(c.removed.has(index)||!RESOURCE_TYPES[g.w.ob[index]])return false;
+  c.removed.add(index);g.w.ob[index]=0;c.damage.delete(index);createResourceDrop(index,def);c.dirty=true;
+  if((g.ex[index>>3]>>(index&7))&1){setPx(index);g.dirty=1}
+  return true;
+}
+// v0.6: a ferramenta ativa é derivada do slot selecionado da barra (nunca de uma cópia); o cursor não equipa.
+const TOOL_POWER=Object.freeze({axe:Object.freeze({1:2}),pickaxe:Object.freeze({2:2,3:2})});
+function activeTool(){const inv=G&&G.inventory;if(!inv||!Number.isInteger(inv.selected)||inv.selected<0||inv.selected>=HOTBAR_SIZE)return null;const s=inv.slots[inv.selected],it=s&&Object.hasOwn(ITEM_TYPES,s.itemId)?ITEM_TYPES[s.itemId]:null;return it&&it.category==='tool'?it:null}
+function toolDamage(tool,objectId){const p=tool&&TOOL_POWER[tool.toolType];return(p&&p[objectId])||COLLECTION_RULES.damage}
+function hitResource(index,now=performance.now()){
+  if(!worldInputActive()||mapOpen||G.boat)return false;
+  const g=G,c=g.collection,w=g.w;
+  if(!Number.isInteger(index)||index<0||index>=w.N*w.N||c.removed.has(index))return false;
+  const def=RESOURCE_TYPES[w.ob[index]];if(!def)return false;
+  const b=resourceBase(w,index);
+  if(Math.hypot(g.px-b.x,g.py-b.y)>COLLECTION_RULES.reach){collectionWarning('Aproxime-se para coletar',now);return false}
+  if(!resourcePathClear(index)){collectionWarning('Caminho bloqueado: aproxime-se por terra',now);return false}
+  if(now-c.lastHitAt<COLLECTION_RULES.cooldown)return false;
+  c.lastHitAt=now;
+  const tool=activeTool(),damage=Math.min(def.hp,(c.damage.get(index)||0)+toolDamage(tool,w.ob[index]));
+  G.swing={at:now,tool:tool?tool.id:null};
+  c.feedback={index,remaining:Math.max(0,def.hp-damage),hp:def.hp,until:now+COLLECTION_RULES.feedback};
+  if(damage>=def.hp)destroyResource(index,def);else c.damage.set(index,damage);
+  c.dirty=true;return true;
+}
+// Future weapons can route this primary action without replacing mouse capture.
+function primaryAction(point){const target=pickResource(point.x,point.y);if(target!==-1)hitResource(target)}
+function collectDrops(){
+  if(!worldInputActive()||mapOpen||G.boat)return;
+  const g=G,c=g.collection,gained={wood:0,stone:0,ore:0};
+  for(const [id,d] of c.drops){
+    if(Math.hypot(g.px-d.x,g.py-d.y)>COLLECTION_RULES.pickup)continue;
+    // A wall or shoreline must not allow pickup through a neighboring tile.
+    const steps=Math.max(1,Math.ceil(Math.hypot(g.px-d.x,g.py-d.y)/4));let clear=true;
+    for(let s=0;s<=steps;s++)if(blocked(g.w,g.px+(d.x-g.px)*s/steps,g.py+(d.y-g.py)*s/steps,0)){clear=false;break}
+    if(!clear)continue;
+    if(!inventoryCapacity(g.inventory,d.kind)){collectionWarning('Inventário cheio',performance.now());continue}
+    const remainder=addItems(g.inventory,d.kind,d.amount),inserted=d.amount-remainder;
+    if(!inserted){collectionWarning('Inventário cheio',performance.now());continue}
+    if(remainder)d.amount=remainder;else c.drops.delete(id);
+    gained[d.kind]+=inserted;inventoryChanged();
+    if(remainder)collectionWarning('Inventário cheio: o restante ficou no chão',performance.now());
+  }
+  const messages=Object.keys(gained).filter(k=>gained[k]).map(k=>'+'+gained[k]+' '+MATERIAL_NAMES[k]);if(messages.length)toast(messages.join(' · '));
+}
+function drawDrops(ox,oy,vw,vh){
+  for(const d of G.collection.drops.values()){
+    if(d.x<ox-10||d.x>ox+vw+10||d.y<oy-10||d.y>oy+vh+10)continue;
+    const x=Math.round(d.x),y=Math.round(d.y);ctx.fillStyle='#10191c';ctx.fillRect(x-7,y-4,14,10);
+    if(d.kind==='wood'){ctx.fillStyle='#b67b41';ctx.fillRect(x-5,y-3,10,6);ctx.fillStyle='#f2c58e';ctx.fillRect(x-4,y-2,2,4)}
+    else if(d.kind==='stone'){ctx.fillStyle='#bcc5c9';ctx.fillRect(x-4,y-4,8,2);ctx.fillRect(x-5,y-2,10,5);ctx.fillStyle='#7d8d96';ctx.fillRect(x+1,y,4,3)}
+    else{ctx.fillStyle='#a6f5ff';ctx.fillRect(x-2,y-6,4,3);ctx.fillRect(x-4,y-3,8,6);ctx.fillStyle='#4fb3d9';ctx.fillRect(x,y-2,4,5)}
+  }
+}
+function drawCollectionFeedback(){
+  const f=G.collection.feedback;if(!f||performance.now()>f.until)return;
+  const b=resourceBase(G.w,f.index),x=b.x-23,y=b.y-(G.w.ob[f.index]===1?88:44);
+  ctx.fillStyle='#07131a';ctx.fillRect(x-2,y-2,50,23);ctx.fillStyle='#e8f4ef';ctx.font='bold 11px monospace';ctx.textBaseline='top';
+  ctx.fillText(f.remaining?f.remaining+'/'+f.hp+' golpes':'Quebrou!',x,y);ctx.fillStyle='#3c555c';ctx.fillRect(x,y+13,46,5);ctx.fillStyle='#ffe28a';ctx.fillRect(x,y+13,46*f.remaining/f.hp,5);
+}
+function isHudPoint(x,y){
+  return y<50||y>=H0-90||(x>=W0-141&&y>=7&&y<=142)||(dbg&&x<490&&y>=50&&y<170)||
+    (toastT>0&&y>=56&&y<=82&&Math.abs(x-W0/2)<ctx.measureText(toastM).width/2+8);
+}
+
+// ===== Estado / save / mapa =====
+let G=null,dbg=0,zi=1,keys={},mapOpen=0,fps=0,fa=0,fc=0,toastT=0,toastM='',lastPut=0,busy=0;const ZS=[.75,1,1.25,1.5],EL=['Ilha inicial','Água','Terra','Fogo','Ar'];
+const toast=m=>{toastM=m;toastT=2.5;if(inventoryOpen){const status=$('inventory-status');if(status)status.textContent=m}if(craftingOpen)setCraftingStatus(m)};
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+function idx(){try{const a=JSON.parse(lsGet(IK)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function putIdx(a){try{localStorage.setItem(IK,JSON.stringify(a));return 1}catch(e){return 0}}
+function saveSnapshot(q){
+if(!G||!G.id)return 0;
+try{
+  const key=WK+G.id,previous=lsGet(key);
+  // One bounded legacy copy per world. If it cannot be kept, preserve v2 and the live session.
+  if(previous){const old=JSON.parse(previous);if(old&&[2,3,4].includes(old.v)&&!lsGet(key+'_backup_v'+old.v)){
+    try{localStorage.setItem(key+'_backup_v'+old.v,previous);if(lsGet(key+'_backup_v'+old.v)!==previous)throw 0}
+    catch(e){toast('Falha ao preservar backup anterior. Libere espaço para salvar.');return 0}
+  }}
+  const j=JSON.stringify({v:5,gv:GEN,id:G.id,x:G.px,y:G.py,boat:G.boat,exp:b64(G.ex),collection:serializeCollection(G.collection),inventory:serializeInventory(G.inventory)});
+  localStorage.setItem(key,j);if(localStorage.getItem(key)!==j)throw 0;
+  G.collection.dirty=false;G.saveDueAt=0;
+  const a=idx(),m=a.find(o=>o.id==G.id);if(m){m.played=Date.now();if(!putIdx(a)){toast('Progresso salvo; falha ao atualizar a lista de mundos.');return 1}}
+  if(!q)toast('Mundo salvo');return 1;
+}catch(e){toast('Falha ao salvar! (espaço cheio ou bloqueado)');return 0}}
+
+function setPx(i){const w=G.w,c=w.ob[i]==1?[47,107,42]:MC[w.ter[i]],d=G.img.data,j=i*4;d[j]=c[0];d[j+1]=c[1];d[j+2]=c[2]}
+function reveal(cx,cy,r){const N=G.w.N,ex=G.ex;for(let y=Math.max(0,cy-r);y<=Math.min(N-1,cy+r);y++)for(let x=Math.max(0,cx-r);x<=Math.min(N-1,cx+r);x++){if((x-cx)**2+(y-cy)**2>r*r)continue;const i=y*N+x;if((ex[i>>3]>>(i&7))&1)continue;ex[i>>3]|=1<<(i&7);setPx(i)}G.dirty=1}
+function start(w,sv){const N=w.N,mc=document.createElement('canvas');mc.width=mc.height=N;const mx=mc.getContext('2d'),img=mx.createImageData(N,N);for(let i=0;i<N*N;i++){const j=i*4;img.data[j]=11;img.data[j+1]=18;img.data[j+2]=25;img.data[j+3]=255}
+G={w,id:w.id,mc,mx,img,ex:new Uint8Array((N*N+7)>>3),px:(w.sp.x+.5)*T,py:(w.sp.y+.5)*T,boat:0,dir:0,an:0,mv:0,tx:-1,ty:-1,dirty:1,mz:1,mpx:0,mpy:0,collection:createCollection(),view:null,inventory:restoreInventory(sv&&sv.v>=4?sv.inventory:null,sv&&sv.v===3&&sv.collection?sv.collection.materials:null),saveDueAt:0,unsavedChanges:false,lastSaveFailed:false,saveProtected:!!(sv&&sv.v>=4&&!safeSavedInventory(sv.inventory))};
+if(sv&&sv.gv!==GEN)toast('Save de gerador antigo: o mapa mudou, progresso reiniciado');
+if(sv&&sv.gv===GEN){
+  // Generation validation has finished; apply the sparse player overlay before collision/minimap.
+  G.collection=restoreCollection(w,sv.v>=3?sv.collection:null);
+  if(Number.isFinite(sv.x)&&Number.isFinite(sv.y)){G.px=sv.x;G.py=sv.y;G.boat=sv.boat?1:0}
+  try{const s=atob(sv.exp);if(s.length===G.ex.length)for(let i=0;i<s.length;i++)G.ex[i]=s.charCodeAt(i)}catch(e){toast('Exploração inválida; mapa de exploração reiniciado')}
+  for(let i=0;i<N*N;i++)if((G.ex[i>>3]>>(i&7))&1)setPx(i);
+}
+connectInventoryMaterials();
+if(blocked(w,G.px,G.py,G.boat)){G.px=(w.sp.x+.5)*T;G.py=(w.sp.y+.5)*T;G.boat=0;toast('Posição salva inválida: voltando ao spawn')}G.cx=G.px;G.cy=G.py;mapOpen=0;inventoryOpen=!!G.inventory.cursor;craftingOpen=false;craftingBusy=false;clearCraftingUI();keys={};$('m').style.display='none';renderInventoryUI();renderCraftingUI();if(G.saveProtected){G.unsavedChanges=true;toast('Inventário recuperado parcialmente em memória; save original protegido.')}if(sv&&sv.v<4)G.saveDueAt=performance.now()+600;if(Object.values(G.inventory.pending).some(n=>n>0))toast('Recursos antigos preservados: abra I para recolher os pendentes.')}
+const setBusy=b=>document.querySelectorAll('#m button').forEach(x=>x.disabled=!!b);
+function run(m,sv){if(busy)return;busy=1;setBusy(1);const it=gen(m.name,m.seed,m.size),t0=performance.now();
+(function step(){const r=it.next();if(r.done){busy=0;setBusy(0);const w=r.value;if(!w.ok){$('ms').textContent='Não foi possível gerar um mundo válido com esta seed/tamanho em 12 tentativas ('+[...new Set(w.log.flat())].join('; ')+'). Tente outra seed.';return}w.tgen=Math.round(performance.now()-t0);w.name=m.name;w.id=m.id;start(w,sv);if(m.isNew){const a=idx();a.push({id:m.id,name:m.name,seed:m.seed,size:m.size,created:Date.now(),played:Date.now()});if(!putIdx(a))toast('Falha ao registrar o mundo no armazenamento');else save(1)}}else{$('ms').textContent=r.value+'…';setTimeout(step,0)}})()}
+function revealAll(){const N=G.w.N;G.ex.fill(255);for(let i=0;i<N*N;i++)setPx(i);G.mx.putImageData(G.img,0,0);G.dirty=0;lastPut=performance.now();toast('Mapa completo revelado');save(1)}
+const btn=()=>mapOpen?{x:W0-214,y:10,w:200,h:28}:{x:W0-141,y:146,w:134,h:22};
+function drawBtn(){const b=btn();ctx.save();ctx.fillStyle='#000';ctx.fillRect(b.x+2,b.y+2,b.w,b.h);ctx.fillStyle='#8fd3c7';ctx.fillRect(b.x,b.y,b.w,b.h);ctx.fillStyle='#06202a';ctx.font='bold 12px monospace';ctx.textBaseline='middle';ctx.fillText(mapOpen?'Revelar mapa completo':'Revelar mapa',b.x+8,b.y+b.h/2+1);ctx.restore()}
+const rnd=()=>'S'+(Math.random()*1e9|0).toString(36).toUpperCase();
+$('rn').onclick=()=>$('sd').value=rnd();
+$('cr').onclick=()=>{const s=$('sd').value.trim()||rnd();$('sd').value=s;run({id:'w'+Date.now().toString(36)+(Math.random()*1e6|0).toString(36),name:$('nm').value.trim()||'Mundo '+s,seed:s,size:+$('sz').value,isNew:1})};
+function migrate(){const o=lsGet(SK);if(!o||lsGet('origens_migrated'))return;try{const v=JSON.parse(o);if(!v||!v.seed||!v.size||typeof v.exp!=='string')throw 0;const id='m'+Date.now().toString(36),a=idx();localStorage.setItem(WK+id,JSON.stringify({v:2,gv:1,id,x:v.x,y:v.y,boat:v.boat,exp:v.exp}));a.push({id,name:(v.name||'Mundo')+' (importado)',seed:v.seed,size:v.size,created:Date.now(),played:Date.now()});if(putIdx(a))localStorage.setItem('origens_migrated','1')}catch(e){}}
+function loadWorld(id){const m=idx().find(o=>o.id==id);if(!m){$('ms').textContent='Mundo inexistente.';return}try{const sv=JSON.parse(lsGet(WK+id));if(!sv||![2,3,4,5].includes(sv.v)||typeof sv.exp!=='string'||atob(sv.exp).length!==((m.size*m.size+7)>>3))throw 0;run(m,sv)}catch(e){$('ms').textContent='Save corrompido ou incompatível. O arquivo não foi apagado.'}}
+function menu(){inventoryOpen=false;craftingOpen=false;craftingBusy=false;keys={};clearInventoryUI();clearCraftingUI();migrate();const l=$('wl');l.textContent='';idx().sort((a,b)=>b.played-a.played).forEach(m=>{const r=document.createElement('div'),i=document.createElement('div'),p=document.createElement('button'),x=document.createElement('button');r.className='r';i.textContent=m.name+' · '+m.seed+' · '+m.size+'² · '+new Date(m.played).toLocaleDateString();p.textContent='Jogar';p.onclick=()=>loadWorld(m.id);x.textContent='Excluir';let c=0;x.onclick=()=>{if(!c){c=1;x.textContent='Confirmar?';setTimeout(()=>{c=0;x.textContent='Excluir'},3000)}else{try{localStorage.removeItem(WK+m.id);localStorage.removeItem(WK+m.id+'_backup_v2');localStorage.removeItem(WK+m.id+'_backup_v3');localStorage.removeItem(WK+m.id+'_backup_v4');putIdx(idx().filter(o=>o.id!=m.id))}catch(e){}menu()}};r.append(i,p,x);l.append(r)});$('m').style.display='flex';$('ms').textContent=''}
+menu();
+// ===== Colisão, jogador, câmera =====
+function blocked(w,x,y,boat,ignoreIndex=-1){const N=w.N,l=x-6,r=x+6,t=y-8;for(let ty=Math.floor(t/T);ty<=Math.floor(y/T);ty++)for(let tx=Math.floor(l/T);tx<=Math.floor(r/T);tx++){if(tx<0||ty<0||tx>=N||ty>=N)return 1;const i=ty*N+tx,tt=w.ter[i];if(boat){if(tt>2)return 1;continue}if(tt<3||tt==8)return 1;const o=w.ob[i];if(o>0&&o<4&&i!==ignoreIndex){const bx=tx*T,by=ty*T,[a,c,d,e]=o==1?[11,12,21,26]:[3,6,29,30];if(r>bx+a&&l<bx+d&&y>by+c&&t<by+e)return 1}}return 0}
+function toggleBoat(){const g=G,w=g.w,N=w.N,tx=Math.floor(g.px/T),ty=Math.floor(g.py/T);
+let bd=1e9,bx=-1,by=-1;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const x=tx+dx,y=ty+dy;if(x<0||y<0||x>=N||y>=N)continue;const i=y*N+x,t=w.ter[i],cx=(x+.5)*T,cy=(y+.5)*T,dd=Math.hypot(cx-g.px,cy-g.py);
+if(!g.boat&&t<3&&w.sea[i]&&!blocked(w,cx,cy,1)&&dd<bd){bd=dd;bx=cx;by=cy}
+if(g.boat&&t>2&&t!=8&&(w.ob[i]<1||w.ob[i]>3)&&!blocked(w,cx,cy,0)&&dd<bd){bd=dd;bx=cx;by=cy}}
+if(bx>=0){g.px=bx;g.py=by;g.boat^=1;toast(g.boat?'Jangada: E para desembarcar':'Desembarcou');return}
+toast(g.boat?'Sem ponto seguro para desembarcar':'Chegue perto da costa para embarcar')}
+function update(dt){const g=G,w=g.w;let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);if(mapOpen||inventoryOpen||craftingOpen)dx=dy=0;
+const mv=dx||dy;if(mv){const l=Math.hypot(dx,dy);dx/=l;dy/=l;const sp=(g.boat?150:128)*dt;let n=g.px+dx*sp;if(!blocked(w,n,g.py,g.boat))g.px=n;n=g.py+dy*sp;if(!blocked(w,g.px,n,g.boat))g.py=n;g.dir=Math.abs(dx)>Math.abs(dy)?(dx>0?3:2):(dy>0?0:1)}
+g.mv=mv;g.an+=mv?dt:0;const tx=Math.floor(g.px/T),ty=Math.floor(g.py/T);if(tx!=g.tx||ty!=g.ty){g.tx=tx;g.ty=ty;reveal(tx,ty,10)}
+if(!inventoryOpen&&!craftingOpen){const z=ZS[zi],vw=W0/z,vh=H0/z,k=1-Math.exp(-8*dt),WW=w.N*T;g.cx+=(g.px-g.cx)*k;g.cy+=(g.py-24-g.cy)*k;g.cx=Math.max(vw/2,Math.min(WW-vw/2,g.cx));g.cy=Math.max(vh/2,Math.min(WW-vh/2,g.cy));}
+if(g.dirty&&performance.now()-lastPut>200){g.mx.putImageData(g.img,0,0);g.dirty=0;lastPut=performance.now()}collectDrops();if(g.saveDueAt&&performance.now()>=g.saveDueAt){g.saveDueAt=0;if(!save(1))g.saveDueAt=performance.now()+10000}if(toastT>0)toastT-=dt}
+function strip(x,y,d,c){ctx.fillStyle=c;for(let i=0;i<32;i+=4){const o=(i>>2&1)?2:3;if(d==0)ctx.fillRect(x+i,y,4,o);else if(d==1)ctx.fillRect(x+32-o,y+i,o,4);else if(d==2)ctx.fillRect(x+i,y+32-o,4,o);else ctx.fillRect(x,y+i,o,4)}}
+function player(x,y){const g=G,s=Math.sin(g.an*12)*(g.mv?1:0),X=Math.round(x-10),Y=Math.round(y-28),d=g.dir;
+if(g.boat){ctx.fillStyle='#6b4423';ctx.fillRect(X-6,y-12,32,18);ctx.fillStyle='#9c6a36';for(let i=0;i<4;i++)ctx.fillRect(X-6,y-12+i*5,32,4)}else{ctx.fillStyle='rgba(0,0,0,.28)';ctx.fillRect(X+2,y-3,16,5)}
+const o=g.boat?-4:0;ctx.fillStyle='#34407a';ctx.fillRect(X+4,Y+20+o,5,8-(s>.3?2:0));ctx.fillRect(X+11,Y+20+o,5,8-(s<-.3?2:0));
+ctx.fillStyle='#d9534f';ctx.fillRect(X+3,Y+11+o,14,10);ctx.fillStyle='#f0c8a0';ctx.fillRect(X+1,Y+12+o,3,8);ctx.fillRect(X+16,Y+12+o,3,8);ctx.fillRect(X+4,Y+1+o,12,11);
+ctx.fillStyle='#5a3a22';ctx.fillRect(X+3,Y+o,14,d==1?10:5);ctx.fillStyle='#222';
+if(d==0){ctx.fillRect(X+7,Y+7+o,2,2);ctx.fillRect(X+12,Y+7+o,2,2)}else if(d==2)ctx.fillRect(X+6,Y+7+o,2,2);else if(d==3)ctx.fillRect(X+13,Y+7+o,2,2);drawHeldTool(X,Y+o,d)}
+function drawHeldTool(X,Y,d){const g=G,t=activeTool();if(!t||g.boat)return;const sw=g.swing,p=sw&&sw.tool===t.id?(performance.now()-sw.at)/260:2,k=p>=0&&p<1?Math.sin(p*Math.PI):0,dx=d===2?-1:1,sx=(d===2?X-1:X+17),sy=Y+19-Math.round(k*6);
+ctx.fillStyle='#6b4423';for(let i=0;i<11;i++)ctx.fillRect(sx+dx*(i>>1),sy-i,2,1);
+const hx0=sx+dx*5,hy0=sy-11;
+if(t.toolType==='axe'){ctx.fillStyle='#4a5559';ctx.fillRect(hx0+(dx>0?-1:-6),hy0-1,7,7);ctx.fillStyle='#a7b1b5';ctx.fillRect(hx0+(dx>0?0:-5),hy0,5,5);ctx.fillStyle='#d5dcdc';ctx.fillRect(hx0+(dx>0?0:-5),hy0,5,1)}
+else{ctx.fillStyle='#4a5559';ctx.fillRect(hx0-6,hy0,13,3);ctx.fillRect(hx0-7,hy0+2,2,2);ctx.fillRect(hx0+6,hy0+2,2,2);ctx.fillStyle='#a7b1b5';ctx.fillRect(hx0-5,hy0,11,2);ctx.fillStyle='#d5dcdc';ctx.fillRect(hx0-4,hy0,6,1)}}
+function draw(tm){const g=G,w=g.w,N=w.N,z=ZS[zi],vw=W0/z,vh=H0/z,ox=Math.round(g.cx-vw/2),oy=Math.round(g.cy-vh/2);
+g.view={z,ox,oy};
+ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#000';ctx.fillRect(0,0,W0,H0);ctx.setTransform(z,0,0,z,-ox*z,-oy*z);
+const x0=Math.max(0,Math.floor(ox/T)-1),x1=Math.min(N-1,Math.ceil((ox+vw)/T)+1),y0=Math.max(0,Math.floor(oy/T)-1),y1=Math.min(N-1,Math.ceil((oy+vh)/T)+1),L=[0,0,0,1,2,2,3,3,2,2],gt=(x,y)=>x<0||y<0||x>=N||y>=N?0:w.ter[y*N+x],DX=[0,1,0,-1],DY=[-1,0,1,0];let nobj=0;
+for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=w.ter[ty*N+tx];let v=(hx(tx,ty,7)*4)|0;if(t==8)v=(v+(tm*2|0))&3;ctx.drawImage(A[t][v],tx*T,ty*T);
+for(let d=0;d<4;d++){const u=gt(tx+DX[d],ty+DY[d]);if(t<3){if(u>2&&u!=8)strip(tx*T,ty*T,d,'rgba(255,255,255,'+(.5+.3*Math.sin(tm*2+tx+ty))+')');else if(u<3&&u>t)strip(tx*T,ty*T,d,TC[u][0])}else if(u==8&&t!=8)strip(tx*T,ty*T,d,'#2a1a14');else if(u>2&&u!=8&&L[u]<L[t])strip(tx*T,ty*T,d,TC[u][0])}
+if(t<3&&hx(tx,ty,9)<.2&&Math.sin(tm*1.5+hx(tx,ty,3)*6.28)>.2){ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(tx*T+2+(hx(tx,ty,5)*18|0),ty*T+2+(hx(tx,ty,6)*24|0),8,2)}}
+drawDrops(ox,oy,vw,vh);
+const pr=Math.floor(g.py/T);
+for(let ty=Math.max(0,y0-3);ty<=Math.min(N-1,y1+1);ty++){for(let tx=Math.max(0,x0-2);tx<=Math.min(N-1,x1+2);tx++){const i=ty*N+tx,o=w.ob[i];if(o){nobj++;const el=w.I[w.own[i]-1]?w.I[w.own[i]-1].el:0;
+if(o==1)ctx.drawImage(TS[el][hx(tx,ty,11)<.5?0:1],tx*T-16,ty*T+T-96);else if(o==2)ctx.drawImage(RS[el],tx*T,ty*T);else if(o==3)ctx.drawImage(CS[el==3?1:0],tx*T,ty*T);else if(o==4)ctx.drawImage(RD,tx*T,ty*T);else ctx.drawImage(SH,tx*T,ty*T)}}
+if(ty==pr)player(g.px,g.py)}
+drawCollectionFeedback();
+g.nobj=nobj;g.nch=((x1>>5)-(x0>>5)+1)*((y1>>5)-(y0>>5)+1);
+// HUD
+ctx.setTransform(1,0,0,1,0,0);ctx.font='bold 14px monospace';ctx.textBaseline='top';
+const txt=(s,x,y,c)=>{ctx.fillStyle='#000';ctx.fillText(s,x+1,y+1);ctx.fillStyle=c||'#e8f4ef';ctx.fillText(s,x,y)},ti=g.ty*N+g.tx,ow=w.own[ti],bio=w.ter[ti]<3&&ow==0?'Oceano':w.ter[ti]<3?'Águas costeiras':(w.I[ow-1].el?EL[w.I[ow-1].el]:ow==1?'Ilha inicial':'Ilhote');
+const materials=inventoryTotals(g.inventory);
+txt('Madeira '+materials.wood+' · Pedra '+materials.stone+' · Minério '+materials.ore,10,32,'#ffe2a8');
+txt('I inventário · C fabricar · 1–9 atalhos · Clique: coletar · E jangada · M mapa · +/- zoom · Esc menu',10,H0-86,'#bfe6dc');
+txt(w.name+' · '+bio+(g.boat?' · jangada':''),10,10);
+const mx=W0-138,my=10;ctx.fillStyle='#8fd3c7';ctx.fillRect(mx-3,my-3,134,134);ctx.fillStyle='#0b1219';ctx.fillRect(mx,my,128,128);ctx.drawImage(g.mc,g.tx-32,g.ty-32,64,64,mx,my,128,128);
+if(((tm*2)|0)%2==0){ctx.fillStyle='#ff3b3b';ctx.fillRect(mx+62,my+62,5,5)}
+if(!mapOpen)drawBtn();
+if(toastT>0)txt(toastM,W0/2-ctx.measureText(toastM).width/2,60,'#ffe28a');
+if(dbg){const l=['FPS '+fps.toFixed(0)+' ('+(1000/Math.max(fps,1)).toFixed(1)+'ms)','pos '+(g.px/T).toFixed(1)+','+(g.py/T).toFixed(1),'tile '+g.tx+','+g.ty+' ter '+w.ter[ti]+' chunk '+(g.tx>>5)+','+(g.ty>>5),'seed '+w.seed+' tentativa '+(w.att+1),'objetos '+nobj+' chunks vis '+g.nch,'geração '+w.tgen+'ms ilhas '+w.I.length,'válido '+w.ok+(w.ok?'':' '+w.fails)];l.forEach((s,i)=>txt(s,10,54+i*16,'#9cff9c'))}
+if(mapOpen)drawMap(tm)}
+function drawMap(tm){const g=G,N=g.w.N,s=(Math.min(W0-40,H0-90)/N)*g.mz,X=g.mpx+W0/2-N*s/2,Y=g.mpy+H0/2+16-N*s/2;ctx.fillStyle='rgba(8,14,20,.97)';ctx.fillRect(0,0,W0,H0);
+ctx.save();ctx.beginPath();ctx.rect(10,50,W0-20,H0-90);ctx.clip();ctx.drawImage(g.mc,X,Y,N*s,N*s);if(((tm*2)|0)%2==0){ctx.fillStyle='#ff3b3b';ctx.fillRect(X+g.px/T*s-3,Y+g.py/T*s-3,7,7)}ctx.restore();
+ctx.strokeStyle='#8fd3c7';ctx.lineWidth=2;ctx.strokeRect(10,50,W0-20,H0-90);ctx.font='bold 14px monospace';ctx.fillStyle='#8fd3c7';ctx.fillText(g.w.name+'  ·  seed: '+g.w.seed+'  ·  '+N+'×'+N+'  ·  você: '+g.tx+','+g.ty,14,16);
+ctx.fillStyle='#bfe6dc';ctx.fillText('Arraste: mover · Roda ou +/-: zoom · M/Esc: fechar',14,H0-28);
+['#44b5c9 água','#e6d49a praia','#5aa13f grama','#8a8478 rocha','#4a3f3f vulcão','#e8531c lava'].forEach((l,i)=>{ctx.fillStyle=l.slice(0,7);ctx.fillRect(430+i*88,H0-27,10,10);ctx.fillStyle='#bfe6dc';ctx.font='12px monospace';ctx.fillText(l.slice(8),444+i*88,H0-28)});drawBtn()}
+// ===== Entrada e loop =====
+addEventListener('keydown',e=>{
+if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)||e.target.isContentEditable)return;
+const k=e.key.toLowerCase();if(!sessionInputActive()||e.repeat)return;
+if(k==='c'){e.preventDefault();setCraftingOpen(!craftingOpen);return}
+if(k==='i'){e.preventDefault();setInventoryOpen(!inventoryOpen);return}
+if(/^[1-9]$/.test(k)&&!mapOpen){if(selectInventorySlot(G.inventory,Number(k)-1))inventoryChanged();e.preventDefault();return}
+if(craftingOpen){if(k==='escape'){e.preventDefault();setCraftingOpen(false)}else if(['w','a','s','d','e','m','+','-','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();return}
+if(inventoryOpen){if(k==='escape'){e.preventDefault();setInventoryOpen(false)}else if(['w','a','s','d','e','m','+','-','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();return}
+keys[k]=1;
+if(k==='m'){mapOpen^=1;keys={};dr=0;renderInventoryUI()}
+else if(k==='e'&&!mapOpen)toggleBoat();
+else if(k==='f3'){e.preventDefault();dbg^=1}
+else if(k==='+'||k==='='){mapOpen?G.mz=Math.min(8,G.mz*1.2):zi=Math.min(3,zi+1)}
+else if(k==='-'){mapOpen?G.mz=Math.max(.5,G.mz/1.2):zi=Math.max(0,zi-1)}
+else if(k==='escape'){if(mapOpen){mapOpen=0;keys={};dr=0;renderInventoryUI()}else if(save()){G=null;keys={};dr=0;menu()}}
+if(['arrowup','arrowdown',' '].includes(k))e.preventDefault();
+});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);addEventListener('blur',()=>keys={});
+addEventListener('pagehide',()=>{keys={};save(1)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){keys={};save(1)}});setInterval(()=>save(1),10000);
+let dr=0;cv.onmousedown=e=>{
+if(e.button!==0||!worldInputActive())return;
+const {x,y}=canvasPoint(e),b=btn();
+if(x<0||y<0||x>=W0||y>=H0)return;
+if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){revealAll();dr=0;return}
+if(mapOpen){dr=1;return}
+dr=0;if(isHudPoint(x,y))return;
+const p=screenToWorld(x,y);if(p)primaryAction(p);
+};addEventListener('mouseup',()=>dr=0);
+cv.oncontextmenu=e=>e.preventDefault();
+cv.onmousemove=e=>{if(dr&&worldInputActive()&&mapOpen){const r=cv.getBoundingClientRect();G.mpx+=e.movementX*W0/r.width;G.mpy+=e.movementY*H0/r.height}};
+cv.onwheel=e=>{if(G&&mapOpen){e.preventDefault();G.mz=Math.max(.5,Math.min(8,G.mz*(e.deltaY<0?1.2:1/1.2)))}};
+let last=0;function frame(ts){requestAnimationFrame(frame);const dt=Math.min(.05,(ts-last)/1000||0);last=ts;if(!G)return;fa+=dt;fc++;if(fa>.5){fps=fc/fa;fa=fc=0}update(dt);draw(ts/1000)}
+initInventoryUI();
+initCraftingUI();
+requestAnimationFrame(frame);
+</script></body></html>

@@ -454,6 +454,10 @@ test('[48-49,60] visible pending recovery fills only available space and remains
     chipped_stone: 0,
     simple_handle: 0,
     primitive_component: 0,
+    stone_axe: 0,
+    stone_pickaxe: 0,
+    rustic_backpack: 0,
+    reinforced_backpack: 0,
   });
   expect(state.slots).toHaveLength(16);
   expect(await materialBalance(page)).toEqual(balance);

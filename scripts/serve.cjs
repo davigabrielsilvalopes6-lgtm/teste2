@@ -6,9 +6,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const entry = 'ORIGENS — Survival v0.5.html';
+const entry = 'ORIGENS — Survival v0.7.html';
 const documents = new Set([
   entry,
+  'ORIGENS — Survival v0.5.html',
   'ORIGENS — Survival v0.4.html',
   'ORIGENS — Survival v0.3.html',
   'ORIGENS — Mundo Procedural v0.2.html',

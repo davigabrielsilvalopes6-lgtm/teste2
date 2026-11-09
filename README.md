@@ -1,6 +1,6 @@
 # ORIGENS
 
-Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2D. O ponto de entrada atual é `ORIGENS — Survival v0.5.html`. As versões v0.2, v0.3 e v0.4 permanecem intactas como referências e cópia de segurança. Os gráficos e recursos visuais são gerados dentro do HTML; não há sprites ou bibliotecas externas para baixar durante o jogo.
+Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2D. O ponto de entrada atual é `ORIGENS — Survival v0.7.html`, baseado no jogo enviado pelo usuário com ferramentas e mochilas. As versões v0.2 a v0.5 permanecem intactas. O HTML original do ZIP está em `backups/origens-v0.7-recebido.html`. Os gráficos são gerados dentro do HTML; não há sprites ou bibliotecas externas para baixar durante o jogo.
 
 ## Executar o jogo
 
@@ -10,7 +10,7 @@ O HTML continua autônomo. Para desenvolvimento, recomenda-se Node.js 24 LTS. As
 npm start
 ```
 
-O servidor escuta apenas no loopback, na porta 4173. A rota `/` entrega os bytes do HTML v0.5, sem transformações; os quatro HTMLs também podem ser acessados pelo nome. Ele não expõe `node_modules`, configurações ou outros arquivos do repositório.
+O servidor escuta apenas no loopback, na porta 4173. A rota `/` entrega os bytes do HTML v0.7, sem transformações; os cinco HTMLs também podem ser acessados pelo nome. Ele não expõe `node_modules`, configurações ou outros arquivos do repositório.
 
 ## Testes Playwright
 
@@ -37,8 +37,8 @@ Esse foi o modo validado no Codex Cloud. A variável é opcional: sem ela, a con
 Outros comandos:
 
 ```sh
-npm run test:unit           # suíte existente de coleta e geração, em Node
-npm test                   # testes existentes + Playwright
+npm run test:unit           # coleta, inventário, crafting, ferramentas e mochilas
+npm test                   # testes em Node + Playwright
 npm run test:e2e:headed    # exige sessão gráfica disponível
 npm run test:e2e:report    # abre o relatório HTML da última execução
 ```
@@ -47,13 +47,13 @@ Para passar opções ao runner: `npm run test:e2e -- --workers=1`.
 
 ## Estratégia dos testes
 
-As specs ficam em `tests/e2e`, separadas dos testes existentes `tests/collection.test.cjs` e `tests/browser.test.cjs`. O script CDP legado foi preservado, mas não é executado pelo runner Playwright.
+As specs ficam em `tests/e2e`. As suítes Node de coleta, inventário e crafting preservam as respectivas versões históricas; `tools.test.cjs` e `backpack.test.cjs` exercitam o código atual. O script CDP legado `tests/browser.test.cjs` foi preservado, mas não é executado pelo runner Playwright.
 
-Cada teste usa um contexto de navegador isolado, sem importar saves pessoais. Menu e controles são acionados por mouse/teclado. Para o Canvas, os testes combinam pixels desenhados com observação do estado real do mundo e do movimento; a ausência de erros ou a simples existência de uma tag `<canvas>` não bastam. O estado é somente lido por `page.evaluate`, sem modificar funções ou adicionar hooks ao jogo.
+Cada teste usa um contexto de navegador isolado, sem importar saves pessoais. Menu e controles são acionados por mouse/teclado. Para o Canvas, os testes combinam pixels desenhados com observação do estado real do mundo e do movimento. O cenário da primeira ferramenta começa vazio, caminha por teclado e coleta recursos naturais sem inserir itens nem alterar a posição por código. Outros casos usam fixtures explícitas de materiais, saves ou posição para alcançar condições de borda. Não há hooks de teste no jogo nem substituição do motor de coleta ou crafting.
 
 Erros de execução JavaScript, mensagens de erro de console, requisições falhadas e respostas HTTP de erro são verificados pela fixture. O jogo não tem escolha de origem elemental implementada: esse cenário aparece explicitamente como ignorado, com o motivo, em vez de simular uma funcionalidade futura.
 
-Não foram alterados HTMLs, geração, controles, coleta, sprites, regras de progressão ou formatos de save para permitir os testes. Eventuais bugs de jogabilidade descobertos devem ser registrados e tratados em tarefa separada.
+A infraestrutura de testes não exige mudanças nas mecânicas. Os ajustes da entrega atual e a comparação com o arquivo recebido estão em `RELATORIO-v0.7.md`.
 
 ## Relatórios e falhas
 
@@ -61,11 +61,11 @@ Não foram alterados HTMLs, geração, controles, coleta, sprites, regras de pro
 - `test-results/`: screenshots de testes reprovados e traces das falhas.
 - A configuração usa Chromium, dois workers e nenhum retry automático.
 
-Esses diretórios, `node_modules` e outros resultados temporários estão no `.gitignore`. Screenshots só são geradas quando um teste falha. Testes aprovados não deixam imagens de falha artificiais.
+Esses diretórios, `node_modules` e outros resultados temporários estão no `.gitignore`. Falhas geram capturas automaticamente; os testes de apresentação também fazem capturas explícitas de aprovação. As evidências selecionadas ficam em `evidencias-v0.7/`.
 
-Em sandbox restrita, iniciar processos de navegador ou ouvir no loopback pode exigir permissão adicional do executor. Isso não é um erro de jogabilidade. Não foi necessário desativar validação TLS, modificar políticas de rede ou alterar o HTML nesta configuração.
+Em sandbox restrita, iniciar processos de navegador ou ouvir no loopback pode exigir permissão adicional do executor. Não foi necessário desativar validação TLS ou modificar políticas de rede.
 
-Os resultados efetivamente executados e as limitações desta entrega estão em `RELATORIO-PLAYWRIGHT.md`.
+Os resultados atuais estão em `RELATORIO-v0.7.md`; o relatório da instalação inicial permanece em `RELATORIO-PLAYWRIGHT.md`.
 
 ## ESLint e Prettier
 
@@ -76,9 +76,9 @@ npm run lint
 npm run format:check
 ```
 
-O ESLint verifica JavaScript, inclusive os scripts inline dos dois HTMLs. `eslint.config.mjs` separa navegador, CommonJS/Node e configuração ESM. Os globais do jogo usados em callbacks `page.evaluate` são reconhecidos somente nos testes E2E. Identificadores indefinidos e as demais regras recomendadas são erros; variáveis não utilizadas são avisos. Parâmetros iniciados por `_` e exceções capturadas intencionalmente não geram aviso de variável não usada. Blocos `catch` vazios são permitidos para os fallbacks de armazenamento existentes.
+O ESLint verifica JavaScript, inclusive os scripts inline dos HTMLs. `eslint.config.mjs` separa navegador, CommonJS/Node e configuração ESM. Os globais do jogo usados em callbacks `page.evaluate` são reconhecidos somente nos testes E2E. Identificadores indefinidos e as demais regras recomendadas são erros; variáveis não utilizadas são avisos. Parâmetros iniciados por `_` e exceções capturadas intencionalmente não geram aviso de variável não usada. Blocos `catch` vazios são permitidos para os fallbacks de armazenamento existentes.
 
-O Prettier usa duas colunas, ponto e vírgula, aspas simples em JavaScript, largura de 100 caracteres e finais de linha LF. HTML, CSS e JavaScript embutidos também são contemplados. `.prettierignore` exclui dependências, relatórios gerados, lockfile gerado e os HTMLs v0.2, v0.3 e v0.4 históricos. A v0.5 continua na verificação, para que divergências não sejam ocultadas.
+O Prettier usa duas colunas, ponto e vírgula, aspas simples em JavaScript, largura de 100 caracteres e finais de linha LF. HTML, CSS e JavaScript embutidos também são contemplados. `.prettierignore` exclui dependências, relatórios gerados, lockfile gerado e os HTMLs v0.2 a v0.5 históricos e o backup original recebido. A v0.7 continua na verificação, para que divergências não sejam ocultadas.
 
 O comando de escrita existe, mas **não foi aplicado à base do jogo nesta tarefa**:
 
@@ -98,7 +98,7 @@ A barra inferior tem 9 atalhos para os primeiros nove slots da mesma mochila. Te
 
 Drops entram apenas até a capacidade disponível e o restante fica no chão. Saves v4 (`gv:2`, gerador inalterado) preservam slots, organização, cursor e seleção por mundo. Saves v3 migram os contadores uma vez, com backup anterior; excedentes ficam visíveis como materiais pendentes de recuperação, sem slots extras. O botão no painel só transfere o que realmente couber.
 
-`npm run test:unit` executa coleta, inventário e crafting; `npm run test:e2e` testa a versão atual no Chromium. A entrada atualizada serve por HTTP na mesma origem para manter o acesso aos saves. O HTML final continua autônomo, mas o armazenamento de arquivos locais diferentes pode ser separado pelo navegador.
+`npm run test:unit` executa coleta, inventário, crafting, ferramentas e mochilas; `npm run test:e2e` testa a versão atual no Chromium. A entrada atualizada serve por HTTP na mesma origem para manter o acesso aos saves. O HTML final continua autônomo, mas o armazenamento de arquivos locais diferentes pode ser separado pelo navegador.
 
 Relatório da etapa e os 60 critérios: `RELATORIO-v0.4.md`.
 
@@ -113,3 +113,13 @@ Os botões fabricam 1 vez, 5 vezes ou o máximo possível. A operação simula c
 O formato do save permanece `v:4`, com `gv:2`. Itens novos passam a ser reconhecidos no mesmo catálogo; não há migração duplicada de contadores. O jogo preserva um backup de save v4 antes da primeira sobrescrita. O painel informa alterações ainda não salvas e falhas de persistência. Saves v4 malformados podem ser recuperados parcialmente em memória, mas ficam protegidos contra sobrescrita; reparação manual/exportação não foi implementada nesta etapa.
 
 Relatório, auditoria v0.4 e os 70 critérios: `RELATORIO-v0.5.md`.
+
+## Versão atual v0.7: ferramentas e mochilas
+
+As duas novidades vieram do HTML enviado pelo usuário. O machado de pedra usa 1 cabo simples, 2 pedras lascadas e 1 graveto. A picareta usa 1 cabo simples, 3 pedras lascadas e 1 graveto. Cada ferramenta ocupa um espaço; materiais continuam com máximo 200. Mova a ferramenta para um dos primeiros nove espaços e selecione com `1`–`9`. A ferramenta acompanha a mira do mouse. Machado derruba árvores em 2 golpes; picareta quebra rochas em 2 e minérios em 3. A mão e a ferramenta incorreta mantêm os valores anteriores: 3, 4 e 5 golpes. Alcance 80 pixels, intervalo 350 ms e drops inalterados.
+
+A Mochila Rústica expande de 16 para 24 espaços e a Reforçada de 24 para 32. Fabrique em `C`, abra `I`, selecione o espaço da mochila e clique em **USAR MOCHILA**. Para selecionar sem carregar o item no cursor, use a tecla correspondente se estiver nos primeiros nove espaços, ou pegue e devolva ao mesmo espaço. O item é consumido uma vez; os itens anteriores mantêm suas posições. A barra continua com nove atalhos e compartilha o mesmo inventário. Em janelas estreitas, os espaços aparecem em quatro colunas com rolagem.
+
+O save atual é `v:5`, conforme o arquivo recebido, com o mesmo gerador `gv:2`. Ele preserva nível da mochila, slots, cursor e seleção. Saves v2, v3 e v4 continuam reconhecidos; versões anteriores recebem backup. Não abra um mundo expandido em uma versão antiga do jogo, que não reconhece esse formato. Use a mesma origem do navegador para acessar os mesmos mundos.
+
+Nesta entrega foram ajustados a mira visual, a largura da grade expandida, os textos sobrepostos e o cartão de capacidade ao trocar mundos. Nenhuma dependência foi adicionada. Relatório e matriz dos 100 critérios da etapa 0.6: [RELATORIO-v0.7.md](RELATORIO-v0.7.md).

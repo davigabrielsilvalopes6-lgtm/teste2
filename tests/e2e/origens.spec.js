@@ -158,7 +158,7 @@ test('reload preserves the saved world and permits resuming through the menu', a
   await page.keyboard.press('Escape');
   await expect(page.locator('#m')).toBeVisible();
   const saved = await page.evaluate(id => JSON.parse(localStorage.getItem('origens_w_' + id)), initial.id);
-  expect(saved).toMatchObject({ id: initial.id, v: 4, gv: 2, x: moved.x, y: moved.y });
+  expect(saved).toMatchObject({ id: initial.id, v: 5, gv: 2, x: moved.x, y: moved.y });
   await page.reload();
   await expect(page.locator('#m')).toBeVisible();
   await expect(page.locator('#wl .r')).toHaveCount(1);
