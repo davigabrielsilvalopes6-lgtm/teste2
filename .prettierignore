@@ -31,3 +31,10 @@ origens-v0.7.html
 # Previous chest release kept unchanged as a reference.
 ORIGENS — Survival v0.8.html
 origens-v0.8-baus.html
+
+# Combat release preserved while integrating the supplied character.
+ORIGENS — Survival v0.8 Combate.html
+origens-v0.8.html
+
+# Generated crop manifest; retained in the generator output format.
+assets/characters/player/player_animations.json

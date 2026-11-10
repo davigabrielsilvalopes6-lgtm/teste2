@@ -1,0 +1,572 @@
+{
+  "source": "personagem_animacao_caminhada.png",
+  "sourceSize": [
+    1330,
+    1182
+  ],
+  "sourceSha256": "9c7253cfffc6da5ee79e4629acce14d8fbe4d2ec6429dde6b8d1dcee5f1b8ddd",
+  "frameWidth": 192,
+  "frameHeight": 272,
+  "anchor": [
+    96,
+    264
+  ],
+  "scale": 0.125,
+  "directions": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "columns": 6,
+  "rows": 4,
+  "walkFps": 8,
+  "idleFrames": [
+    0
+  ],
+  "combatAnimation": "provided pose with existing equipment effects; no attack frames supplied",
+  "layers": [
+    "outfit_original_flattened"
+  ],
+  "missingLayers": [
+    "body",
+    "hair",
+    "shirt",
+    "pants",
+    "boots",
+    "gloves",
+    "helmet",
+    "armor",
+    "accessory"
+  ],
+  "frames": [
+    {
+      "direction": "down",
+      "frame": 0,
+      "sourceRect": [
+        71,
+        5,
+        150,
+        254
+      ],
+      "atlasRect": [
+        21,
+        14,
+        150,
+        254
+      ],
+      "mainBounds": [
+        75,
+        9,
+        217,
+        255
+      ]
+    },
+    {
+      "direction": "down",
+      "frame": 1,
+      "sourceRect": [
+        290,
+        5,
+        150,
+        254
+      ],
+      "atlasRect": [
+        213,
+        14,
+        150,
+        254
+      ],
+      "mainBounds": [
+        40,
+        9,
+        182,
+        255
+      ]
+    },
+    {
+      "direction": "down",
+      "frame": 2,
+      "sourceRect": [
+        508,
+        5,
+        149,
+        254
+      ],
+      "atlasRect": [
+        406,
+        14,
+        149,
+        254
+      ],
+      "mainBounds": [
+        38,
+        9,
+        179,
+        255
+      ]
+    },
+    {
+      "direction": "down",
+      "frame": 3,
+      "sourceRect": [
+        725,
+        6,
+        150,
+        253
+      ],
+      "atlasRect": [
+        597,
+        15,
+        150,
+        253
+      ],
+      "mainBounds": [
+        37,
+        10,
+        179,
+        255
+      ]
+    },
+    {
+      "direction": "down",
+      "frame": 4,
+      "sourceRect": [
+        944,
+        6,
+        149,
+        251
+      ],
+      "atlasRect": [
+        790,
+        17,
+        149,
+        251
+      ],
+      "mainBounds": [
+        38,
+        10,
+        179,
+        253
+      ]
+    },
+    {
+      "direction": "down",
+      "frame": 5,
+      "sourceRect": [
+        1161,
+        6,
+        151,
+        250
+      ],
+      "atlasRect": [
+        980,
+        18,
+        151,
+        250
+      ],
+      "mainBounds": [
+        39,
+        10,
+        182,
+        252
+      ]
+    },
+    {
+      "direction": "up",
+      "frame": 0,
+      "sourceRect": [
+        73,
+        298,
+        150,
+        255
+      ],
+      "atlasRect": [
+        21,
+        285,
+        150,
+        255
+      ],
+      "mainBounds": [
+        77,
+        23,
+        219,
+        270
+      ]
+    },
+    {
+      "direction": "up",
+      "frame": 1,
+      "sourceRect": [
+        291,
+        298,
+        149,
+        253
+      ],
+      "atlasRect": [
+        214,
+        287,
+        149,
+        253
+      ],
+      "mainBounds": [
+        41,
+        23,
+        182,
+        268
+      ]
+    },
+    {
+      "direction": "up",
+      "frame": 2,
+      "sourceRect": [
+        509,
+        298,
+        150,
+        255
+      ],
+      "atlasRect": [
+        405,
+        285,
+        150,
+        255
+      ],
+      "mainBounds": [
+        39,
+        23,
+        181,
+        270
+      ]
+    },
+    {
+      "direction": "up",
+      "frame": 3,
+      "sourceRect": [
+        729,
+        298,
+        147,
+        254
+      ],
+      "atlasRect": [
+        598,
+        286,
+        147,
+        254
+      ],
+      "mainBounds": [
+        41,
+        23,
+        180,
+        269
+      ]
+    },
+    {
+      "direction": "up",
+      "frame": 4,
+      "sourceRect": [
+        944,
+        298,
+        150,
+        255
+      ],
+      "atlasRect": [
+        789,
+        285,
+        150,
+        255
+      ],
+      "mainBounds": [
+        38,
+        23,
+        180,
+        270
+      ]
+    },
+    {
+      "direction": "up",
+      "frame": 5,
+      "sourceRect": [
+        1159,
+        299,
+        151,
+        252
+      ],
+      "atlasRect": [
+        980,
+        288,
+        151,
+        252
+      ],
+      "mainBounds": [
+        37,
+        24,
+        180,
+        268
+      ]
+    },
+    {
+      "direction": "left",
+      "frame": 0,
+      "sourceRect": [
+        67,
+        598,
+        153,
+        251
+      ],
+      "atlasRect": [
+        20,
+        561,
+        153,
+        251
+      ],
+      "mainBounds": [
+        71,
+        27,
+        216,
+        270
+      ]
+    },
+    {
+      "direction": "left",
+      "frame": 1,
+      "sourceRect": [
+        287,
+        598,
+        152,
+        249
+      ],
+      "atlasRect": [
+        212,
+        563,
+        152,
+        249
+      ],
+      "mainBounds": [
+        37,
+        27,
+        181,
+        268
+      ]
+    },
+    {
+      "direction": "left",
+      "frame": 2,
+      "sourceRect": [
+        507,
+        597,
+        152,
+        250
+      ],
+      "atlasRect": [
+        404,
+        562,
+        152,
+        250
+      ],
+      "mainBounds": [
+        37,
+        26,
+        181,
+        268
+      ]
+    },
+    {
+      "direction": "left",
+      "frame": 3,
+      "sourceRect": [
+        725,
+        597,
+        151,
+        252
+      ],
+      "atlasRect": [
+        596,
+        560,
+        151,
+        252
+      ],
+      "mainBounds": [
+        37,
+        26,
+        180,
+        270
+      ]
+    },
+    {
+      "direction": "left",
+      "frame": 4,
+      "sourceRect": [
+        943,
+        598,
+        150,
+        241
+      ],
+      "atlasRect": [
+        789,
+        571,
+        150,
+        241
+      ],
+      "mainBounds": [
+        37,
+        27,
+        179,
+        260
+      ]
+    },
+    {
+      "direction": "left",
+      "frame": 5,
+      "sourceRect": [
+        1161,
+        598,
+        152,
+        248
+      ],
+      "atlasRect": [
+        980,
+        564,
+        152,
+        248
+      ],
+      "mainBounds": [
+        39,
+        27,
+        183,
+        267
+      ]
+    },
+    {
+      "direction": "right",
+      "frame": 0,
+      "sourceRect": [
+        61,
+        893,
+        154,
+        247
+      ],
+      "atlasRect": [
+        19,
+        837,
+        154,
+        247
+      ],
+      "mainBounds": [
+        65,
+        26,
+        211,
+        265
+      ]
+    },
+    {
+      "direction": "right",
+      "frame": 1,
+      "sourceRect": [
+        283,
+        893,
+        151,
+        247
+      ],
+      "atlasRect": [
+        212,
+        837,
+        151,
+        247
+      ],
+      "mainBounds": [
+        33,
+        26,
+        176,
+        265
+      ]
+    },
+    {
+      "direction": "right",
+      "frame": 2,
+      "sourceRect": [
+        500,
+        893,
+        153,
+        237
+      ],
+      "atlasRect": [
+        404,
+        847,
+        153,
+        237
+      ],
+      "mainBounds": [
+        30,
+        26,
+        175,
+        255
+      ]
+    },
+    {
+      "direction": "right",
+      "frame": 3,
+      "sourceRect": [
+        720,
+        893,
+        151,
+        246
+      ],
+      "atlasRect": [
+        596,
+        838,
+        151,
+        246
+      ],
+      "mainBounds": [
+        32,
+        26,
+        175,
+        264
+      ]
+    },
+    {
+      "direction": "right",
+      "frame": 4,
+      "sourceRect": [
+        940,
+        893,
+        152,
+        236
+      ],
+      "atlasRect": [
+        788,
+        848,
+        152,
+        236
+      ],
+      "mainBounds": [
+        34,
+        26,
+        178,
+        254
+      ]
+    },
+    {
+      "direction": "right",
+      "frame": 5,
+      "sourceRect": [
+        1157,
+        893,
+        153,
+        246
+      ],
+      "atlasRect": [
+        980,
+        838,
+        153,
+        246
+      ],
+      "mainBounds": [
+        35,
+        26,
+        180,
+        264
+      ]
+    }
+  ]
+}

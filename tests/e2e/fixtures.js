@@ -35,7 +35,7 @@ const test = base.extend({
 async function openMenu(page) {
   const response = await page.goto('/');
   expect(response?.ok()).toBe(true);
-  await expect(page).toHaveTitle('ORIGENS — Survival v0.8 Combate');
+  await expect(page).toHaveTitle('ORIGENS — Survival v0.8.1');
   await expect(page.locator('#m')).toBeVisible();
   await expect(page.locator('#cr')).toBeEnabled();
 }

@@ -1,0 +1,33 @@
+{
+  "node": {
+    "historicalRegressionGroupsPassed": 242,
+    "currentAppearanceGroupsPassed": 16
+  },
+  "playwright": {
+    "total": 81,
+    "passed": 77,
+    "failed": 0,
+    "skipped": 4,
+    "retries": 0,
+    "browser": "Chromium 155.0.8059.79"
+  },
+  "assetFidelity": {
+    "exactOriginalFiles": 4,
+    "exactFrameCopies": 24
+  },
+  "eslint": {
+    "errors": 0,
+    "warnings": 0,
+    "exitCode": 0
+  },
+  "prettier": {
+    "filesWithStyleDifferences": 9,
+    "exitCode": 1
+  },
+  "limitations": [
+    "No separated clothing/body/hair layers or alternate outfits supplied",
+    "No dedicated idle or combat animation cycles supplied",
+    "Elemental origin selection absent in current game",
+    "External HTMLPreview not verified from this environment"
+  ]
+}

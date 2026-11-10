@@ -1,0 +1,17 @@
+PASS appearance: embedded PNG is exactly the reviewed atlas and uses no remote artwork
+PASS appearance: procedural generation, inventory, crafting, storage and combat blocks remain byte-identical to v0.8
+PASS appearance: defaults contain only a real complete outfit; missing layers remain null
+PASS appearance: unknown resources, missing fields and future schemas cannot be silently saved
+PASS appearance: appearance restore creates independent world objects
+PASS appearance: image cache constructs exactly one image and validates decoded dimensions
+PASS appearance: unknown and broken assets fail safely and preserve saved appearance
+PASS appearance: walking samples all six supplied frames at eight FPS without changing position
+PASS appearance: blocked motion stays idle; stopping keeps the last direction
+PASS appearance: four directions select separate atlas rows with identical dimensions and anchor
+PASS appearance: direction changes retain the central walk clock
+PASS appearance: attack and special states use existing pose without changing combat values
+PASS appearance: dodge, hit and panel states never invent animation frames
+PASS appearance: composition uses one shared frame, uniform scale, integer placement and no smoothing
+PASS appearance: unavailable layers skip rendering rather than drawing a different garment
+PASS appearance: NaN or negative frame time does not mutate the controller
+16 appearance test groups passed.

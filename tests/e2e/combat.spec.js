@@ -176,12 +176,23 @@ test('staff and spear recipes, projectile hits and special costs use real mouse 
     await page.evaluate(() => G.combat.stats.elementalEnergy),
   );
   await page.waitForTimeout(3100);
-  await page.evaluate(() => {
+  const exhausted = await page.evaluate(() => {
     G.combat.stats.elementalEnergy = 0;
+    return { clock: G.combat.clock, nextSpecial: G.combat.nextSpecial, serial: G.combat.serial };
   });
   await aim(page, target, 'right');
-  expect(await page.evaluate(() => G.combat.stats.elementalEnergy)).toBeLessThan(1);
-  expect(await page.evaluate(() => G.combat.stats.elementalEnergy)).toBeGreaterThanOrEqual(0);
+  const rejected = await page.evaluate(() => ({
+    clock: G.combat.clock,
+    energy: G.combat.stats.elementalEnergy,
+    nextSpecial: G.combat.nextSpecial,
+    serial: G.combat.serial,
+  }));
+  // Native mouse delivery may take several frames. Energy keeps regenerating
+  // at the existing 6/s; reject the attack without pretending that time stopped.
+  expect(rejected.energy).toBeCloseTo((rejected.clock - exhausted.clock) * 6, 5);
+  expect(rejected.nextSpecial).toBe(exhausted.nextSpecial);
+  expect(rejected.serial).toBe(exhausted.serial);
+  expect(await page.evaluate(() => G.combat.targets[0].health)).toBe(76);
   expect(await page.evaluate(() => G.combat.projectiles.length)).toBe(0);
   await equip(page, 'primitive_spear');
   await page.waitForTimeout(600);

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node scripts/serve.cjs",
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "node tests/collection.test.cjs && node tests/inventory.test.cjs && node tests/crafting.test.cjs && node tests/tools.test.cjs && node tests/backpack.test.cjs && node tests/storage.test.cjs && node tests/combat.test.cjs",
+    "test:unit": "node tests/collection.test.cjs && node tests/inventory.test.cjs && node tests/crafting.test.cjs && node tests/tools.test.cjs && node tests/backpack.test.cjs && node tests/storage.test.cjs && node tests/combat.test.cjs && node tests/appearance.test.cjs",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",

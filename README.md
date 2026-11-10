@@ -1,6 +1,20 @@
 # ORIGENS
 
-Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2D. O ponto de entrada atual é `ORIGENS — Survival v0.8 Combate.html`, baseado no jogo enviado pelo usuário com ferramentas e mochilas. As versões v0.2 a v0.5 permanecem intactas. O HTML original do ZIP está em `backups/origens-v0.7-recebido.html`. Os gráficos são gerados dentro do HTML; não há sprites ou bibliotecas externas para baixar durante o jogo.
+Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2D. O ponto de entrada atual é `ORIGENS — Survival v0.8.1.html`, baseado no jogo enviado pelo usuário com ferramentas e mochilas. As versões v0.2 a v0.5 permanecem intactas. O HTML original do ZIP está em `backups/origens-v0.7-recebido.html`. O personagem oficial enviado pelo usuário está incorporado como PNG no HTML; o cenário continua usando a arte procedural existente. O jogo não precisa baixar sprites ou bibliotecas externas.
+
+## Personagem oficial — v0.8.1
+
+A versão atual usa as 24 poses de caminhada fornecidas (seis por direção), com um controlador de animação e um ponto fixo nos pés. Parado, usa a primeira pose da direção atual; não foram fornecidos ciclos próprios de idle, ataque, especial, esquiva ou reação ao dano. Os efeitos de combate existentes continuam funcionando.
+
+Pressione **I → PERSONAGEM** para abrir a prévia nas quatro direções. O ZIP contém corpo, cabelo e roupas unidos: **não há peças separadas nem alternativas para trocar roupas**. O painel informa essa limitação e mantém essas opções desabilitadas. A infraestrutura de aparência não cria itens nem modifica atributos.
+
+A aparência fica no save de cada mundo, agora com schema 8. Saves anteriores continuam aceitos, e a primeira gravação mantém uma cópia exata do save antigo. A v0.8 permanece intacta em `ORIGENS — Survival v0.8 Combate.html` / `origens-v0.8.html`.
+
+- Jogo autônomo para publicação: [origens-v0.8.1.html](origens-v0.8.1.html).
+- Auditoria dos assets, testes e limitações: [RELATORIO-PERSONAGEM-v0.8.1.md](RELATORIO-PERSONAGEM-v0.8.1.md).
+- Originais, atlas e metadados: [assets/characters/player](assets/characters/player).
+- Testes novos: `tests/appearance.test.cjs`, `tests/e2e/appearance.spec.js`.
+- Verificação técnica dos recortes: `python tests/verify-player-assets.py` (requer Pillow; não é dependência do jogo).
 
 ## Executar o jogo
 
@@ -10,7 +24,7 @@ O HTML continua autônomo. Para desenvolvimento, recomenda-se Node.js 24 LTS. As
 npm start
 ```
 
-O servidor escuta apenas no loopback, na porta 4173. A rota `/` entrega os bytes do HTML v0.8 Combate, sem transformações; os sete HTMLs também podem ser acessados pelo nome. Ele não expõe `node_modules`, configurações ou outros arquivos do repositório.
+O servidor escuta apenas no loopback, na porta 4173. A rota `/` entrega os bytes do HTML v0.8.1, sem transformações; os oito HTMLs, incluindo a v0.8 Combate preservada, também podem ser acessados pelo nome. Ele não expõe `node_modules`, configurações ou outros arquivos do repositório.
 
 ## Testes Playwright
 
@@ -37,7 +51,7 @@ Esse foi o modo validado no Codex Cloud. A variável é opcional: sem ela, a con
 Outros comandos:
 
 ```sh
-npm run test:unit           # coleta, inventário, crafting, ferramentas e mochilas
+npm run test:unit           # coleta, inventário, crafting, ferramentas, mochilas, baús, combate e aparência
 npm test                   # testes em Node + Playwright
 npm run test:e2e:headed    # exige sessão gráfica disponível
 npm run test:e2e:report    # abre o relatório HTML da última execução
@@ -47,13 +61,13 @@ Para passar opções ao runner: `npm run test:e2e -- --workers=1`.
 
 ## Estratégia dos testes
 
-As specs ficam em `tests/e2e`. As suítes Node de coleta, inventário e crafting preservam as respectivas versões históricas; `tools.test.cjs` e `backpack.test.cjs` exercitam o código atual. O script CDP legado `tests/browser.test.cjs` foi preservado, mas não é executado pelo runner Playwright.
+As specs ficam em `tests/e2e`. As suítes Node de coleta, inventário, crafting, ferramentas, mochilas, armazenamento e combate exercitam as respectivas versões preservadas; `appearance.test.cjs` verifica o código v0.8.1 e a preservação dos sistemas anteriores. O Playwright exercita a entrada atual completa. O script CDP legado `tests/browser.test.cjs` foi preservado, mas não é executado pelo runner Playwright.
 
 Cada teste usa um contexto de navegador isolado, sem importar saves pessoais. Menu e controles são acionados por mouse/teclado. Para o Canvas, os testes combinam pixels desenhados com observação do estado real do mundo e do movimento. O cenário da primeira ferramenta começa vazio, caminha por teclado e coleta recursos naturais sem inserir itens nem alterar a posição por código. Outros casos usam fixtures explícitas de materiais, saves ou posição para alcançar condições de borda. Não há hooks de teste no jogo nem substituição do motor de coleta ou crafting.
 
 Erros de execução JavaScript, mensagens de erro de console, requisições falhadas e respostas HTTP de erro são verificados pela fixture. O jogo não tem escolha de origem elemental implementada: esse cenário aparece explicitamente como ignorado, com o motivo, em vez de simular uma funcionalidade futura.
 
-A infraestrutura de testes não exige mudanças nas mecânicas. Os ajustes da entrega atual e a comparação com o arquivo recebido estão em `RELATORIO-v0.7.md`.
+A infraestrutura de testes não exige mudanças nas mecânicas. A comparação da importação v0.7 está em `RELATORIO-v0.7.md`; a integração atual está em `RELATORIO-PERSONAGEM-v0.8.1.md`.
 
 ## Relatórios e falhas
 
@@ -78,7 +92,7 @@ npm run format:check
 
 O ESLint verifica JavaScript, inclusive os scripts inline dos HTMLs. `eslint.config.mjs` separa navegador, CommonJS/Node e configuração ESM. Os globais do jogo usados em callbacks `page.evaluate` são reconhecidos somente nos testes E2E. Identificadores indefinidos e as demais regras recomendadas são erros; variáveis não utilizadas são avisos. Parâmetros iniciados por `_` e exceções capturadas intencionalmente não geram aviso de variável não usada. Blocos `catch` vazios são permitidos para os fallbacks de armazenamento existentes.
 
-O Prettier usa duas colunas, ponto e vírgula, aspas simples em JavaScript, largura de 100 caracteres e finais de linha LF. HTML, CSS e JavaScript embutidos também são contemplados. `.prettierignore` exclui dependências, relatórios gerados, lockfile gerado e os HTMLs v0.2 a v0.7 históricos e o backup original recebido. A v0.8 Combate continua na verificação, para que divergências não sejam ocultadas.
+O Prettier usa duas colunas, ponto e vírgula, aspas simples em JavaScript, largura de 100 caracteres e finais de linha LF. HTML, CSS e JavaScript embutidos também são contemplados. `.prettierignore` exclui dependências, relatórios gerados, lockfile gerado e os HTMLs v0.2 a v0.7 históricos e o backup original recebido. A v0.8 Combate está preservada como histórico; os dois HTMLs atuais v0.8.1 continuam na verificação, para que divergências não sejam ocultadas.
 
 O comando de escrita existe, mas **não foi aplicado à base do jogo nesta tarefa**:
 
@@ -98,7 +112,7 @@ A barra inferior tem 9 atalhos para os primeiros nove slots da mesma mochila. Te
 
 Drops entram apenas até a capacidade disponível e o restante fica no chão. Saves v4 (`gv:2`, gerador inalterado) preservam slots, organização, cursor e seleção por mundo. Saves v3 migram os contadores uma vez, com backup anterior; excedentes ficam visíveis como materiais pendentes de recuperação, sem slots extras. O botão no painel só transfere o que realmente couber.
 
-`npm run test:unit` executa coleta, inventário, crafting, ferramentas e mochilas; `npm run test:e2e` testa a versão atual no Chromium. A entrada atualizada serve por HTTP na mesma origem para manter o acesso aos saves. O HTML final continua autônomo, mas o armazenamento de arquivos locais diferentes pode ser separado pelo navegador.
+`npm run test:unit` executa coleta, inventário, crafting, ferramentas, mochilas, baús, combate e aparência; `npm run test:e2e` testa a versão atual no Chromium. A entrada atualizada serve por HTTP na mesma origem para manter o acesso aos saves. O HTML final continua autônomo, mas o armazenamento de arquivos locais diferentes pode ser separado pelo navegador.
 
 Relatório da etapa e os 60 critérios: `RELATORIO-v0.4.md`.
 
@@ -120,7 +134,7 @@ As duas novidades vieram do HTML enviado pelo usuário. O machado de pedra usa 1
 
 A Mochila Rústica expande de 16 para 24 espaços e a Reforçada de 24 para 32. Fabrique em `C`, abra `I`, selecione o espaço da mochila e clique em **USAR MOCHILA**. Para selecionar sem carregar o item no cursor, use a tecla correspondente se estiver nos primeiros nove espaços, ou pegue e devolva ao mesmo espaço. O item é consumido uma vez; os itens anteriores mantêm suas posições. A barra continua com nove atalhos e compartilha o mesmo inventário. Em janelas estreitas, os espaços aparecem em quatro colunas com rolagem.
 
-O save atual é `v:5`, conforme o arquivo recebido, com o mesmo gerador `gv:2`. Ele preserva nível da mochila, slots, cursor e seleção. Saves v2, v3 e v4 continuam reconhecidos; versões anteriores recebem backup. Não abra um mundo expandido em uma versão antiga do jogo, que não reconhece esse formato. Use a mesma origem do navegador para acessar os mesmos mundos.
+Na v0.7 preservada, o save é `v:5`, conforme o arquivo recebido, com o mesmo gerador `gv:2`. Ele preserva nível da mochila, slots, cursor e seleção. Saves v2, v3 e v4 continuam reconhecidos; versões anteriores recebem backup. Não abra um mundo expandido em uma versão antiga do jogo, que não reconhece esse formato. Use a mesma origem do navegador para acessar os mesmos mundos.
 
 Nesta entrega foram ajustados a mira visual, a largura da grade expandida, os textos sobrepostos e o cartão de capacidade ao trocar mundos. Nenhuma dependência foi adicionada. Relatório e matriz dos 100 critérios da etapa 0.6: [RELATORIO-v0.7.md](RELATORIO-v0.7.md).
 
@@ -144,4 +158,4 @@ Fabrique espada, lança e cajado em `C`, coloque nos nove primeiros espaços e s
 
 Vida não regenera. Vigor recupera 12/s após 0,8s; energia elemental, 6/s após 1,5s. O modo de treinamento permite simular dano, derrota segura e recuperação; não acrescenta inimigos ou loot. Vida zero mantém inventário/mundo e pode ser recuperada explicitamente nesse modo.
 
-O save é agora `v:7`, com backup v6 antes da atualização e atributos por mundo. Animações, projéteis e alvos não são gravados. A v0.8 de baús permanece em `ORIGENS — Survival v0.8.html` e `origens-v0.8-baus.html`; o arquivo publicado `origens-v0.8.html` passa a entregar combate. A revisão técnica do pacote é 0.8.1, sem implementar a etapa 0.9. Relatório: [RELATORIO-COMBATE-v0.8.md](RELATORIO-COMBATE-v0.8.md).
+Na v0.8 Combate preservada, o save é `v:7`, com backup v6 antes da atualização e atributos por mundo. Animações, projéteis e alvos não são gravados. A v0.8 de baús permanece em `ORIGENS — Survival v0.8.html` e `origens-v0.8-baus.html`; o arquivo publicado `origens-v0.8.html` passa a entregar combate. A revisão técnica do pacote é 0.8.1, sem implementar a etapa 0.9. Relatório: [RELATORIO-COMBATE-v0.8.md](RELATORIO-COMBATE-v0.8.md).

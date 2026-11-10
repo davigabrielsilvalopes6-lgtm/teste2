@@ -41,7 +41,7 @@ test('generates the map and renders terrain, player and minimap pixels', async (
       const color = (pixels[i] << 16) | (pixels[i + 1] << 8) | pixels[i + 2];
       if (palette.has(color)) terrainPixels++;
       if (pixels[i + 3] === 255) opaquePixels++;
-      if (color === 0xd9534f) playerPixels++;
+      if (pixels[i] > 190 && pixels[i] - pixels[i + 1] > 40 && pixels[i + 1] - pixels[i + 2] > 20) playerPixels++;
     }
     return terrainPixels > 1000 && opaquePixels > 1000 && playerPixels > 0;
   })).toBe(true);
@@ -158,7 +158,7 @@ test('reload preserves the saved world and permits resuming through the menu', a
   await page.keyboard.press('Escape');
   await expect(page.locator('#m')).toBeVisible();
   const saved = await page.evaluate(id => JSON.parse(localStorage.getItem('origens_w_' + id)), initial.id);
-  expect(saved).toMatchObject({ id: initial.id, v: 7, gv: 2, x: moved.x, y: moved.y });
+  expect(saved).toMatchObject({ id: initial.id, v: 8, gv: 2, x: moved.x, y: moved.y });
   await page.reload();
   await expect(page.locator('#m')).toBeVisible();
   await expect(page.locator('#wl .r')).toHaveCount(1);

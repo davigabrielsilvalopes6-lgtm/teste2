@@ -1,0 +1,7 @@
+ORIGENS - Referencias visuais do personagem
+
+personagem_normal.png: personagem estatico, sem mochila.
+personagem_4_lados.png: vistas frente, costas, esquerda e direita.
+personagem_animacao_caminhada.png: sequencia visual de caminhada nas quatro direcoes.
+
+IMPORTANTE: Sao imagens de referencia, nao spritesheets tecnicamente validadas para uso direto em 48x64.
