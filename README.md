@@ -4,6 +4,8 @@ Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2
 
 ## Personagem oficial — v0.8.1
 
+[Jogar a v0.8.1 no navegador, sem baixar](https://htmlpreview.github.io/?https://github.com/davigabrielsilvalopes6-lgtm/teste2/blob/d9252b433fce3148cb3123df5e2317034815c9a7/origens-v0.8.1.html). HTML publicado e conferido byte a byte; a prévia externa HTMLPreview não foi validada neste ambiente.
+
 A versão atual usa as 24 poses de caminhada fornecidas (seis por direção), com um controlador de animação e um ponto fixo nos pés. Parado, usa a primeira pose da direção atual; não foram fornecidos ciclos próprios de idle, ataque, especial, esquiva ou reação ao dano. Os efeitos de combate existentes continuam funcionando.
 
 Pressione **I → PERSONAGEM** para abrir a prévia nas quatro direções. O ZIP contém corpo, cabelo e roupas unidos: **não há peças separadas nem alternativas para trocar roupas**. O painel informa essa limitação e mantém essas opções desabilitadas. A infraestrutura de aparência não cria itens nem modifica atributos.
