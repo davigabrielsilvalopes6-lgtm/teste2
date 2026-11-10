@@ -458,6 +458,7 @@ test('[48-49,60] visible pending recovery fills only available space and remains
     stone_pickaxe: 0,
     rustic_backpack: 0,
     reinforced_backpack: 0,
+    wooden_chest: 0,
   });
   expect(state.slots).toHaveLength(16);
   expect(await materialBalance(page)).toEqual(balance);

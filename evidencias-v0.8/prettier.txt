@@ -1,0 +1,15 @@
+
+> origens@0.8.0 format:check
+> prettier --check .
+
+Checking formatting...
+[warn] ORIGENS — Survival v0.8.html
+[warn] origens-v0.8.html
+[warn] playwright.config.js
+[warn] RELATORIO-PLAYWRIGHT.md
+[warn] RELATORIO-v0.3.md
+[warn] tests/browser.test.cjs
+[warn] tests/collection.test.cjs
+[warn] tests/e2e/fixtures.js
+[warn] tests/e2e/origens.spec.js
+[warn] Code style issues found in 9 files. Run Prettier with --write to fix.

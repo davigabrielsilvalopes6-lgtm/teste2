@@ -1,6 +1,6 @@
 # ORIGENS
 
-Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2D. O ponto de entrada atual é `ORIGENS — Survival v0.7.html`, baseado no jogo enviado pelo usuário com ferramentas e mochilas. As versões v0.2 a v0.5 permanecem intactas. O HTML original do ZIP está em `backups/origens-v0.7-recebido.html`. Os gráficos são gerados dentro do HTML; não há sprites ou bibliotecas externas para baixar durante o jogo.
+Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2D. O ponto de entrada atual é `ORIGENS — Survival v0.8.html`, baseado no jogo enviado pelo usuário com ferramentas e mochilas. As versões v0.2 a v0.5 permanecem intactas. O HTML original do ZIP está em `backups/origens-v0.7-recebido.html`. Os gráficos são gerados dentro do HTML; não há sprites ou bibliotecas externas para baixar durante o jogo.
 
 ## Executar o jogo
 
@@ -10,7 +10,7 @@ O HTML continua autônomo. Para desenvolvimento, recomenda-se Node.js 24 LTS. As
 npm start
 ```
 
-O servidor escuta apenas no loopback, na porta 4173. A rota `/` entrega os bytes do HTML v0.7, sem transformações; os cinco HTMLs também podem ser acessados pelo nome. Ele não expõe `node_modules`, configurações ou outros arquivos do repositório.
+O servidor escuta apenas no loopback, na porta 4173. A rota `/` entrega os bytes do HTML v0.8, sem transformações; os seis HTMLs também podem ser acessados pelo nome. Ele não expõe `node_modules`, configurações ou outros arquivos do repositório.
 
 ## Testes Playwright
 
@@ -78,7 +78,7 @@ npm run format:check
 
 O ESLint verifica JavaScript, inclusive os scripts inline dos HTMLs. `eslint.config.mjs` separa navegador, CommonJS/Node e configuração ESM. Os globais do jogo usados em callbacks `page.evaluate` são reconhecidos somente nos testes E2E. Identificadores indefinidos e as demais regras recomendadas são erros; variáveis não utilizadas são avisos. Parâmetros iniciados por `_` e exceções capturadas intencionalmente não geram aviso de variável não usada. Blocos `catch` vazios são permitidos para os fallbacks de armazenamento existentes.
 
-O Prettier usa duas colunas, ponto e vírgula, aspas simples em JavaScript, largura de 100 caracteres e finais de linha LF. HTML, CSS e JavaScript embutidos também são contemplados. `.prettierignore` exclui dependências, relatórios gerados, lockfile gerado e os HTMLs v0.2 a v0.5 históricos e o backup original recebido. A v0.7 continua na verificação, para que divergências não sejam ocultadas.
+O Prettier usa duas colunas, ponto e vírgula, aspas simples em JavaScript, largura de 100 caracteres e finais de linha LF. HTML, CSS e JavaScript embutidos também são contemplados. `.prettierignore` exclui dependências, relatórios gerados, lockfile gerado e os HTMLs v0.2 a v0.7 históricos e o backup original recebido. A v0.8 continua na verificação, para que divergências não sejam ocultadas.
 
 O comando de escrita existe, mas **não foi aplicado à base do jogo nesta tarefa**:
 
@@ -114,7 +114,7 @@ O formato do save permanece `v:4`, com `gv:2`. Itens novos passam a ser reconhec
 
 Relatório, auditoria v0.4 e os 70 critérios: `RELATORIO-v0.5.md`.
 
-## Versão atual v0.7: ferramentas e mochilas
+## Ferramentas e mochilas v0.7
 
 As duas novidades vieram do HTML enviado pelo usuário. O machado de pedra usa 1 cabo simples, 2 pedras lascadas e 1 graveto. A picareta usa 1 cabo simples, 3 pedras lascadas e 1 graveto. Cada ferramenta ocupa um espaço; materiais continuam com máximo 200. Mova a ferramenta para um dos primeiros nove espaços e selecione com `1`–`9`. A ferramenta acompanha a mira do mouse. Machado derruba árvores em 2 golpes; picareta quebra rochas em 2 e minérios em 3. A mão e a ferramenta incorreta mantêm os valores anteriores: 3, 4 e 5 golpes. Alcance 80 pixels, intervalo 350 ms e drops inalterados.
 
@@ -123,3 +123,15 @@ A Mochila Rústica expande de 16 para 24 espaços e a Reforçada de 24 para 32. 
 O save atual é `v:5`, conforme o arquivo recebido, com o mesmo gerador `gv:2`. Ele preserva nível da mochila, slots, cursor e seleção. Saves v2, v3 e v4 continuam reconhecidos; versões anteriores recebem backup. Não abra um mundo expandido em uma versão antiga do jogo, que não reconhece esse formato. Use a mesma origem do navegador para acessar os mesmos mundos.
 
 Nesta entrega foram ajustados a mira visual, a largura da grade expandida, os textos sobrepostos e o cartão de capacidade ao trocar mundos. Nenhuma dependência foi adicionada. Relatório e matriz dos 100 critérios da etapa 0.6: [RELATORIO-v0.7.md](RELATORIO-v0.7.md).
+
+## Baús v0.8
+
+Fabrique um Baú de Madeira em `C` com **8 tábuas + 4 madeiras**. Mova o item para um dos primeiros nove espaços, selecione com `1`–`9` e aponte para um terreno próximo. A prévia verde indica posição válida; o clique esquerdo coloca o baú. Com outro item selecionado, o clique continua coletando como antes.
+
+Aproxime-se e pressione **F** para abrir o baú de 27 espaços (9×3). O painel inferior mostra todos os espaços liberados da mochila. Esquerdo move/junta/troca, direito divide/deposita uma unidade, e **Shift + esquerdo** transfere o máximo que couber ao outro recipiente. Excedentes continuam na origem. Existe apenas um cursor, compartilhado com o inventário.
+
+**F** ou **Esc** fecha o baú, devolvendo com segurança o item do cursor. Se não couber, o painel permanece aberto. **RECOLHER BAÚ** funciona apenas vazio, sem cursor e com espaço para devolver o item. `E` continua controlando a jangada. Não é possível andar, coletar ou embarcar com o armazenamento aberto.
+
+Cada mundo salva baús, conteúdos, cursor e jogador juntos no schema `v:6`, com gerador `gv:2` inalterado. Mundos v2–v5 recebem uma coleção vazia e conservam o progresso, com backup anterior. Dados inconsistentes protegem o registro original contra sobrescrita. O limite para novos posicionamentos é 128 baús por mundo; baús válidos já salvos acima desse limite são mantidos.
+
+A v0.7 completa permanece intacta. Relatório técnico, resultados reais, arquivos alterados e limitações: [RELATORIO-v0.8.md](RELATORIO-v0.8.md). Para repetir: `npm test`, `npm run lint` e `npm run format:check`. No Cloud validado: `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test`.
