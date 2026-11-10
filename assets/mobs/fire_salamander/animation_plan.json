@@ -1,0 +1,196 @@
+{
+  "asset": "ORIGENS — Salamandra Ígnea",
+  "deliveryStatus": "reference_and_animation_plan_only",
+  "runtimeReady": false,
+  "sourceArchive": "ORIGENS_4_criaturas_aprovadas (1).zip",
+  "approvedReference": "reference/salamandra_ignea_aprovada.png",
+  "generatedStudy": "reference/salamandra_ignea_estudo_idle_4_direcoes.png",
+  "notes": [
+    "As imagens de reference/ são referências, não folhas técnicas de produção.",
+    "A geração não respeitou a grade nativa: estudo 1254 × 1254, sem divisão integral em 4 × 4.",
+    "Contagens, dimensões, âncora e tempos abaixo são um plano de produção, não metadados de recorte do estudo.",
+    "Tempos são propostas artísticas; não definem dano, cooldown, alcance ou comportamento de inimigos."
+  ],
+  "artDirection": {
+    "perspective": "top-down 3/4",
+    "species": "single low quadrupedal volcanic salamander",
+    "legs": 4,
+    "sideFacingVisibleWidthPx": [36, 44],
+    "sideFacingVisibleHeightPx": [24, 36],
+    "lighting": "upper-left",
+    "outline": "dark colored",
+    "palette": ["#382326", "#56302B", "#873B30", "#B94B34", "#E97839", "#F4A14C", "#FFD477"],
+    "alphaValuesForFinalSprites": [0, 255],
+    "noAntialiasing": true,
+    "noBakedCheckerboard": true
+  },
+  "creatureFrame": {
+    "width": 64,
+    "height": 64,
+    "anchorPx": [32, 44],
+    "anchorMeaning": "ponto comum de apoio no chão, a validar no desenho final",
+    "paddingPx": 0,
+    "spacingPx": 0,
+    "uniformScale": true
+  },
+  "directions": ["down", "up", "left", "right"],
+  "animations": {
+    "idle": {
+      "file": "salamandra_ignea_idle.png",
+      "status": "not_produced",
+      "columns": 4,
+      "rows": 4,
+      "width": 256,
+      "height": 256,
+      "framesPerDirection": 4,
+      "totalFrames": 16,
+      "frameDurationsMs": [180, 180, 180, 180],
+      "loop": true,
+      "lastFrameHeld": false,
+      "phases": [
+        "Repouso, mantendo os pés e o centro do corpo.",
+        "Inspiração: expansão mínima do tronco, sem levantar o corpo inteiro.",
+        "Expiração: cauda desloca a ponta em um pixel.",
+        "Retorno suave à pose inicial, sem salto no loop."
+      ]
+    },
+    "walk": {
+      "file": "salamandra_ignea_walk.png",
+      "status": "not_produced",
+      "columns": 6,
+      "rows": 4,
+      "width": 384,
+      "height": 256,
+      "framesPerDirection": 6,
+      "totalFrames": 24,
+      "frameDurationsMs": [100, 100, 100, 100, 100, 100],
+      "loop": true,
+      "lastFrameHeld": false,
+      "phases": [
+        "Apoio da dianteira esquerda e traseira direita; cauda neutra.",
+        "Transferência de peso; par oposto inicia avanço.",
+        "Contato do par oposto; leve flexão do tronco.",
+        "Apoio da dianteira direita e traseira esquerda; fase oposta à primeira.",
+        "Transferência de peso inversa; cauda acompanha o tronco.",
+        "Retorno ao apoio inicial, permitindo ligar ao frame 1 sem salto."
+      ]
+    },
+    "fire_spit": {
+      "file": "salamandra_ignea_fire_spit.png",
+      "status": "not_produced",
+      "columns": 6,
+      "rows": 4,
+      "width": 384,
+      "height": 256,
+      "framesPerDirection": 6,
+      "totalFrames": 24,
+      "frameDurationsMs": [100, 100, 140, 100, 80, 180],
+      "loop": false,
+      "lastFrameHeld": false,
+      "phases": [
+        "Alerta: olhar fixa o alvo, corpo permanece ancorado.",
+        "Antecipação: cabeça recolhe discretamente; cauda estabiliza.",
+        "Garganta ganha brilho localizado âmbar, sem halo.",
+        "Mandíbula abre na direção da linha; corpo mantém identidade.",
+        "Pose de emissão: o jogo poderá criar o projétil separado; não desenhá-lo colado ao corpo.",
+        "Mandíbula fecha e garganta retorna à paleta de repouso."
+      ],
+      "plannedReleaseFrameZeroBased": 4
+    },
+    "bite": {
+      "file": "salamandra_ignea_bite.png",
+      "status": "not_produced",
+      "columns": 4,
+      "rows": 4,
+      "width": 256,
+      "height": 256,
+      "framesPerDirection": 4,
+      "totalFrames": 16,
+      "frameDurationsMs": [100, 60, 70, 170],
+      "loop": false,
+      "lastFrameHeld": false,
+      "phases": [
+        "Preparação: cabeça ligeiramente recolhida.",
+        "Abertura rápida da mandíbula.",
+        "Fechamento: mordida clara, sem alongar a cabeça ou trocar os olhos.",
+        "Retorno ao repouso sem deslocar a âncora."
+      ]
+    },
+    "hurt": {
+      "file": "salamandra_ignea_hurt.png",
+      "status": "not_produced",
+      "columns": 2,
+      "rows": 4,
+      "width": 128,
+      "height": 256,
+      "framesPerDirection": 2,
+      "totalFrames": 8,
+      "frameDurationsMs": [80, 120],
+      "loop": false,
+      "lastFrameHeld": false,
+      "phases": [
+        "Recuo sutil da cabeça e tronco; preservar todas as patas.",
+        "Recuperação da postura; sem flash branco ou troca de espécie."
+      ]
+    },
+    "death": {
+      "file": "salamandra_ignea_death.png",
+      "status": "not_produced",
+      "columns": 5,
+      "rows": 4,
+      "width": 320,
+      "height": 256,
+      "framesPerDirection": 5,
+      "totalFrames": 20,
+      "frameDurationsMs": [100, 120, 140, 160, 500],
+      "loop": false,
+      "lastFrameHeld": true,
+      "phases": [
+        "Perda de apoio: corpo inicia queda baixa.",
+        "Patas flexionam e cabeça desce, sem desaparecer.",
+        "Tronco repousa no chão; cauda mantém comprimento.",
+        "Acomodação final de patas e cauda.",
+        "Pose final estável, sem sangue; manter até o jogo decidir removê-la."
+      ]
+    }
+  },
+  "projectile": {
+    "file": "salamandra_ignea_fireball.png",
+    "status": "not_produced",
+    "columns": 4,
+    "rows": 1,
+    "width": 64,
+    "height": 16,
+    "frameWidth": 16,
+    "frameHeight": 16,
+    "frames": 4,
+    "frameDurationsMs": [70, 70, 70, 70],
+    "loop": true,
+    "anchorPx": [8, 8],
+    "directionInArtwork": "right",
+    "rotation": "controlled by future game code",
+    "plan": [
+      "Núcleo laranja com pequeno realce amarelo.",
+      "Variação curta da chama e poucas partículas dentro da célula.",
+      "Chama estende levemente, sem mudar o centro do núcleo.",
+      "Retorno à silhueta inicial para um loop sem salto."
+    ]
+  },
+  "preview": {
+    "file": "salamandra_ignea_preview.png",
+    "status": "not_produced",
+    "required": "exibir frame final 64 × 64 em escala 1:1 e ampliação inteira por nearest-neighbor; aguarda frames finais"
+  },
+  "manualValidationPending": [
+    "anatomia quadrúpede em cada frame, considerando a oclusão das patas",
+    "consistência de manchas, proporções e iluminação entre direções",
+    "continuidade do loop de caminhada e idle",
+    "antecipação legível antes da emissão de fogo",
+    "ausência de cortes e tremor entre todos os frames",
+    "reconhecimento em tamanho nativo no terreno vulcânico",
+    "paleta reduzida, bordas duras e iluminação consistente no grid nativo"
+  ],
+  "plannedCreatureFrames": 108,
+  "plannedProjectileFrames": 4,
+  "plannedTotalFrames": 112
+}

@@ -1,0 +1,80 @@
+{
+  "deliveryStatus": "reference_and_animation_plan_only",
+  "referenceAndPlanAudited": true,
+  "runtimeReady": false,
+  "referenceImages": [
+    {
+      "file": "reference/salamandra_ignea_aprovada.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGB",
+      "sha256": "78d3392e1cc0e750a6a9d91bacd5b73c95be32ad2bcf26bf6e1d226a0665a4fd",
+      "rgbaColors": 215252,
+      "hasAlphaChannel": false,
+      "fullyTransparentPixels": 0,
+      "partiallyTransparentPixels": 0,
+      "divisibleByNative64": true,
+      "productionSheet": false
+    },
+    {
+      "file": "reference/salamandra_ignea_estudo_idle_4_direcoes.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "sha256": "d672d2ec30f1e6f9312f1d502ff175b289a42806ddb13f811e2c1a8ea37363f0",
+      "rgbaColors": 117363,
+      "hasAlphaChannel": true,
+      "fullyTransparentPixels": 1175139,
+      "partiallyTransparentPixels": 396263,
+      "divisibleByNative64": false,
+      "productionSheet": false
+    }
+  ],
+  "finalSpriteSheets": [
+    {
+      "file": "salamandra_ignea_idle.png",
+      "expectedDimensions": [256, 256],
+      "exists": false,
+      "technicalChecksPassed": false
+    },
+    {
+      "file": "salamandra_ignea_walk.png",
+      "expectedDimensions": [384, 256],
+      "exists": false,
+      "technicalChecksPassed": false
+    },
+    {
+      "file": "salamandra_ignea_fire_spit.png",
+      "expectedDimensions": [384, 256],
+      "exists": false,
+      "technicalChecksPassed": false
+    },
+    {
+      "file": "salamandra_ignea_bite.png",
+      "expectedDimensions": [256, 256],
+      "exists": false,
+      "technicalChecksPassed": false
+    },
+    {
+      "file": "salamandra_ignea_hurt.png",
+      "expectedDimensions": [128, 256],
+      "exists": false,
+      "technicalChecksPassed": false
+    },
+    {
+      "file": "salamandra_ignea_death.png",
+      "expectedDimensions": [320, 256],
+      "exists": false,
+      "technicalChecksPassed": false
+    },
+    {
+      "file": "salamandra_ignea_fireball.png",
+      "expectedDimensions": [64, 16],
+      "exists": false,
+      "technicalChecksPassed": false
+    }
+  ],
+  "allFinalSheetTechnicalChecksPassed": false,
+  "manualVisualValidation": "pending; technical checks cannot prove anatomy, direction or seamless animation",
+  "gameplayModified": false
+}

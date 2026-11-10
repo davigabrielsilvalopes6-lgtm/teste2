@@ -1,0 +1,11 @@
+Reference and 112-frame production plan audited.
+REFERENCE reference/salamandra_ignea_aprovada.png: 1536x1024, RGB, partial-alpha pixels=0
+REFERENCE reference/salamandra_ignea_estudo_idle_4_direcoes.png: 1254x1254, RGBA, partial-alpha pixels=396263
+PENDING salamandra_ignea_idle.png: [256, 256]
+PENDING salamandra_ignea_walk.png: [384, 256]
+PENDING salamandra_ignea_fire_spit.png: [384, 256]
+PENDING salamandra_ignea_bite.png: [256, 256]
+PENDING salamandra_ignea_hurt.png: [128, 256]
+PENDING salamandra_ignea_death.png: [320, 256]
+PENDING salamandra_ignea_fireball.png: [64, 16]
+Production-ready sheets: NO. Manual frame/pixel correction is required.
