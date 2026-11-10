@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:455750) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/storage.spec.js:422:1 › [0.8 01,04-06,13-18,31,34,38,41-44,48,53-54,69-75,80,84] first chest: natural resources, real walking, sea travel, crafting, storage and reload (36.3s)
+
+  1 passed (37.2s)

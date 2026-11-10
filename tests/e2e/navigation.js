@@ -20,7 +20,7 @@ async function moveTo(page, point) {
           new Promise((resolve) => {
             const started = performance.now();
             const observe = () => {
-              if ((G[coordinate] - target) * sign >= -1) return resolve(true);
+              if ((G[coordinate] - target) * sign >= -12) return resolve(true);
               if (performance.now() - started > timeout) return resolve(false);
               requestAnimationFrame(observe);
             };
@@ -28,10 +28,24 @@ async function moveTo(page, point) {
           }),
         { coordinate, target, sign, timeout },
       );
-      expect(reached, `Natural sea route reaches ${coordinate}=${target} by keyboard`).toBe(true);
+      expect(reached, `Natural sea route approaches ${coordinate}=${target} by keyboard`).toBe(
+        true,
+      );
     } finally {
       await page.keyboard.up(key);
     }
+    // Release before the center, then align with short native key presses.
+    // Holding through the endpoint can overshoot a narrow shore under CPU load.
+    for (let correction = 0; correction < 20; correction++) {
+      const actual = await page.evaluate((coordinate) => G[coordinate], coordinate);
+      if (Math.abs(actual - target) <= 3.5) break;
+      await page.keyboard.press(actual < target ? positive : negative, { delay: 20 });
+    }
+    const actual = await page.evaluate((coordinate) => G[coordinate], coordinate);
+    expect(
+      Math.abs(actual - target),
+      `Natural route aligns ${coordinate} before turning`,
+    ).toBeLessThanOrEqual(3.5);
   }
 }
 

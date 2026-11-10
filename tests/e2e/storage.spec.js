@@ -947,7 +947,7 @@ test('[0.8 69-73,80,82] real storage write failure reports unsaved transfer and 
     quantity: 40,
   });
   const written = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), key);
-  expect(written.v).toBe(6);
+  expect(written.v).toBe(7);
   expect(written.inventory.slots.some((stack) => stack?.itemId === 'wood')).toBe(false);
   expect(written.storage.chests[0].slots[0]).toEqual({ itemId: 'wood', quantity: 40 });
 });

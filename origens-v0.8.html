@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ORIGENS — Survival v0.8</title><style>
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ORIGENS — Survival v0.8 Combate</title><style>
 :root{color-scheme:dark;--bg:#0b1219;--pn:#17303f;--ac:#8fd3c7;--tx:#e8f4ef;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
 #w{height:100%;display:flex;align-items:center;justify-content:center;position:relative}
@@ -911,11 +911,23 @@ button{cursor:pointer;margin-top:8px;background:var(--ac);color:#06202a;font-wei
   }
 }
 
-</style></head><body><div id=w><canvas id=c width=960 height=540></canvas><div id=m><div class=b><h1>ORIGENS</h1><div style="font-size:12px;opacity:.8">Arquipélago procedural · baús · v0.8</div>
+
+#combat-hud[hidden],#combat-training[hidden],#combat-defeat[hidden]{display:none!important}
+#combat-hud{position:absolute;z-index:12;left:10px;top:54px;width:184px;padding:7px;background:#10251ee8;border:2px solid #e0bc72;color:#fff4cd;font:10px monospace;box-sizing:border-box}
+#combat-hud label{margin:0 0 5px;font-size:9px;display:block}#combat-hud strong{float:right;font-size:9px}#combat-hud progress{display:block;width:100%;height:9px;appearance:none;border:1px solid #080f12;background:#20322d;margin-top:2px}
+#combat-hud progress::-webkit-progress-bar{background:#20322d}#combat-health::-webkit-progress-value{background:#df6257}#combat-stamina::-webkit-progress-value{background:#9cc65a}#combat-elementalEnergy::-webkit-progress-value{background:#64d3e1}
+#combat-training{position:absolute;z-index:13;right:12px;bottom:110px;width:212px;background:#132820ed;border:2px solid #e0bc72;padding:8px;box-sizing:border-box;font:10px monospace;color:#fff1c1}#combat-training strong,#combat-training span{display:block;margin-bottom:5px;line-height:1.4}#combat-training button,#combat-defeat button{font-size:10px;padding:5px;margin-top:4px}
+#combat-state{font-size:9px}#combat-defeat{color:#ffb48c;line-height:1.5}
+.item-icon[data-item="primitive_sword"]{width:6px;height:29px;background:#cbd5d5;transform:rotate(35deg);box-shadow:inset 2px 0 #eff5ed}.item-icon[data-item="primitive_sword"]:before{content:"";position:absolute;left:-5px;bottom:5px;width:16px;height:4px;background:#b48846}.item-icon[data-item="primitive_sword"]:after{content:"";position:absolute;bottom:-4px;left:1px;width:4px;height:8px;background:#8b5d32}
+.item-icon[data-item="primitive_spear"]{width:4px;height:30px;background:#9b713d;transform:rotate(30deg)}.item-icon[data-item="primitive_spear"]:before{content:"";position:absolute;top:0;left:-3px;width:10px;height:9px;background:#cbd5d5;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.item-icon[data-item="training_staff"]{width:5px;height:28px;background:#9b713d;transform:rotate(20deg)}.item-icon[data-item="training_staff"]:before{content:"";position:absolute;left:-3px;top:0;width:11px;height:10px;background:#8deeff;box-shadow:inset 2px 2px #e6ffff}
+@media(max-width:600px){#combat-hud{width:145px;top:48px;padding:4px}#combat-training{width:170px;right:6px;bottom:80px;padding:5px}#combat-training button{font-size:9px;margin-top:2px;padding:4px}}
+
+</style></head><body><div id=w><canvas id=c width=960 height=540></canvas><div id=m><div class=b><h1>ORIGENS</h1><div style="font-size:12px;opacity:.8">Arquipélago procedural · fundação do combate · v0.8</div>
 <label>Nome do mundo</label><input id=nm placeholder="Mundo 1">
 <label>Seed (texto ou número)</label><div style="display:flex;gap:6px"><input id=sd value="ORIGENS-2026"><button id=rn style="width:48px;margin:0">↻</button></div>
 <label>Tamanho</label><select id=sz><option value=128>Teste 128×128</option><option value=256>Pequeno 256×256</option><option value=512 selected>Médio 512×512</option><option value=1024>Grande 1024×1024</option></select>
-<button id=cr>Criar mundo</button><div id=wl></div><div id=ms style="font-size:12px;margin-top:8px;min-height:34px"></div></div></div>
+<button id=cr>Criar mundo</button><button id="combat-training-link" type="button">Abrir treinamento (desenvolvimento)</button><div id=wl></div><div id=ms style="font-size:12px;margin-top:8px;min-height:34px"></div></div></div>
 <div id="inventory-overlay" hidden>
   <section id="inventory-panel" role="dialog" aria-modal="true" aria-labelledby="inventory-title">
     <header class="inventory-heading">
@@ -1037,6 +1049,14 @@ button{cursor:pointer;margin-top:8px;background:var(--ac);color:#06202a;font-wei
     <p id="chest-remove-help">Esvazie o baú antes de recolhê-lo.</p>
   </section>
 </div>
+
+<section id="combat-hud" aria-label="Atributos do personagem" hidden>
+<label>VIDA <strong id="combat-health-value">100/100</strong><progress id="combat-health" max="100" value="100" aria-label="Vida"></progress></label>
+<label>VIGOR <strong id="combat-stamina-value">100/100</strong><progress id="combat-stamina" max="100" value="100" aria-label="Vigor"></progress></label>
+<label>ENERGIA <strong id="combat-elementalEnergy-value">100/100</strong><progress id="combat-elementalEnergy" max="100" value="100" aria-label="Energia elemental"></progress></label>
+<span id="combat-state" role="status"></span><div id="combat-defeat" hidden>DERROTA DE TESTE<br><button type="button" id="combat-open-training">Abrir modo de recuperação</button></div>
+</section>
+<aside id="combat-training" aria-label="Modo de treinamento" hidden><strong>TREINAMENTO DE DESENVOLVIMENTO</strong><span>Use um mundo de teste. Não há inimigos ou loot.</span><button id="training-targets" type="button">Criar/repor alvos próximos</button><button id="training-damage" type="button">Simular dano: 10</button><button id="training-defeat" type="button">Testar derrota</button><button id="training-recover" type="button">Recuperar atributos de teste</button></aside>
 
 <div id="hotbar" role="toolbar" aria-label="Barra rápida: espaços 1 a 9 da mochila" hidden></div>
 <div id="inventory-cursor" aria-hidden="true" hidden><span class="item-icon"></span><span class="item-quantity"></span></div>
@@ -1166,6 +1186,9 @@ const ITEM_TYPES = Object.freeze({
   primitive_component: Object.freeze({id: "primitive_component", name: "Peça primitiva", maxStack: DEFAULT_MAX_STACK, category: "component", color: "#a0b6ac", description: "Componente primitivo, sem função de equipamento nesta etapa."}),
   stone_axe: Object.freeze({id: "stone_axe", name: "Machado de Pedra", maxStack: 1, category: "tool", toolType: "axe", tier: "primitive", color: "#a7b1b5", description: "Ferramenta primitiva: corta árvores com menos golpes. Use-a pela barra rápida."}),
   stone_pickaxe: Object.freeze({id: "stone_pickaxe", name: "Picareta de Pedra", maxStack: 1, category: "tool", toolType: "pickaxe", tier: "primitive", color: "#a7b1b5", description: "Ferramenta primitiva: quebra rochas e minérios com menos golpes. Use-a pela barra rápida."}),
+  primitive_sword: Object.freeze({id:"primitive_sword", name:"Espada Primitiva",category:"weapon",maxStack:1,color:"#cbd5d5",description:"Arma provisória. Esquerdo: ataque básico. Direito: especial. Espaço: esquiva."}),
+  primitive_spear: Object.freeze({id:"primitive_spear", name:"Lança Primitiva",category:"weapon",maxStack:1,color:"#cbd5d5",description:"Arma provisória. Esquerdo: ataque básico. Direito: especial. Espaço: esquiva."}),
+  training_staff: Object.freeze({id:"training_staff", name:"Cajado de Treinamento",category:"weapon",maxStack:1,color:"#cbd5d5",description:"Arma provisória. Esquerdo: ataque básico. Direito: especial. Espaço: esquiva."}),
   wooden_chest: Object.freeze({id: "wooden_chest", name: "Baú de Madeira", maxStack: 1, category: "storage", storageCapacity: 27, color: "#a57636", description: "Selecione na barra e clique para posicionar. F abre o baú próximo. Armazena 27 pilhas quando colocado."}),
   rustic_backpack: Object.freeze({id: "rustic_backpack", name: "Mochila Rústica", maxStack: 1, category: "backpack", backpackTier: 1, color: "#a57636", description: "Use no inventário para expandir de " + BACKPACK_TIERS[0].capacity + " para " + BACKPACK_TIERS[1].capacity + " espaços. É consumida ao usar."}),
   reinforced_backpack: Object.freeze({id: "reinforced_backpack", name: "Mochila Reforçada", maxStack: 1, category: "backpack", backpackTier: 2, color: "#6d7b4b", description: "Exige a Mochila Rústica já usada. Expande de " + BACKPACK_TIERS[1].capacity + " para " + BACKPACK_TIERS[2].capacity + " espaços. É consumida ao usar."}),
@@ -1649,6 +1672,9 @@ const CRAFT_RECIPES = createCraftRecipeRegistry([
     available: true,
     order: 10,
   },
+{id:'recipe_primitive_sword',name:'Espada Primitiva',category:'weapons',ingredients:[{itemId:'simple_handle',quantity:1},{itemId:'chipped_stone',quantity:3}],output:{itemId:'primitive_sword',quantity:1},station:null,available:true,order:11},
+{id:'recipe_primitive_spear',name:'Lança Primitiva',category:'weapons',ingredients:[{itemId:'stick',quantity:3},{itemId:'simple_handle',quantity:1},{itemId:'chipped_stone',quantity:2}],output:{itemId:'primitive_spear',quantity:1},station:null,available:true,order:12},
+{id:'recipe_training_staff',name:'Cajado de Treinamento',category:'weapons',ingredients:[{itemId:'simple_handle',quantity:2},{itemId:'chipped_stone',quantity:2},{itemId:'ore',quantity:1}],output:{itemId:'training_staff',quantity:1},station:null,available:true,order:13},
 ]).recipes;
 
 function countCraftMaterials(inv) {
@@ -3125,7 +3151,7 @@ function renderInventoryDetails() {
   $('inventory-detail-icon').dataset.item = item ? item.id : '';
   $('inventory-detail-empty').hidden = !!item;
   $('inventory-detail-name').textContent = item ? item.name.toUpperCase() : 'ESPAÇO LIVRE';
-  $('inventory-detail-category').textContent = item ? (item.category === 'storage' ? '[ ARMAZENAMENTO ]' : item.category === 'backpack' ? '[ MOCHILA DE EXPANSÃO ]' : item.category === 'tool' ? '[ FERRAMENTA ]' : item.category === 'component' ? '[ COMPONENTE ]' : '[ MATERIAL ]') : '[ MOCHILA ]';
+  $('inventory-detail-category').textContent = item ? (item.category === 'weapon' ? '[ ARMA ]' : item.category === 'storage' ? '[ ARMAZENAMENTO ]' : item.category === 'backpack' ? '[ MOCHILA DE EXPANSÃO ]' : item.category === 'tool' ? '[ FERRAMENTA ]' : item.category === 'component' ? '[ COMPONENTE ]' : '[ MATERIAL ]') : '[ MOCHILA ]';
   $('inventory-detail-quantity').textContent = item ? stack.quantity + ' / ' + item.maxStack : '— / 200';
   $('inventory-detail-total-label').textContent = item ? 'TOTAL' : 'OCUPADOS';
   $('inventory-detail-total').textContent = item ? String(total) : total + ' / ' + G.inventory.slots.length;
@@ -3582,7 +3608,7 @@ function initCraftingUI() {
       previousCategory = recipe.category;
       const heading = document.createElement('h3');
       heading.className = 'crafting-category';
-      heading.textContent = recipe.category === 'basic' ? 'MATERIAIS BÁSICOS' : recipe.category === 'tools' ? 'FERRAMENTAS PRIMITIVAS' : recipe.category === 'backpacks' ? 'MOCHILAS' : recipe.category === 'storage' ? 'ARMAZENAMENTO' : 'COMPONENTES';
+      heading.textContent = recipe.category === 'basic' ? 'MATERIAIS BÁSICOS' : recipe.category === 'tools' ? 'FERRAMENTAS PRIMITIVAS' : recipe.category === 'backpacks' ? 'MOCHILAS' : recipe.category === 'storage' ? 'ARMAZENAMENTO' : recipe.category === 'weapons' ? 'ARMAS DE TREINAMENTO' : 'COMPONENTES';
       list.append(heading);
     }
     const button = document.createElement('button');
@@ -3856,6 +3882,8 @@ function hitResource(index,now=performance.now()){
 }
 // Future weapons can route this primary action without replacing mouse capture.
 function primaryAction(point){
+  if(activeWeapon()){beginCombatAttack(false);return;}
+  if(G?.combat&&(!G.combat.stats.health||G.combat.dodge||G.combat.active))return;
   if(!worldInputActive()||mapOpen||G.boat)return;
   const tx=Math.floor(point.x/T),ty=Math.floor(point.y/T);
   if(selectedChestItem()){
@@ -3916,11 +3944,11 @@ if(!G||!G.id)return 0;
 try{
   const key=WK+G.id,previous=lsGet(key);
   // One bounded legacy copy per world. If it cannot be kept, preserve v2 and the live session.
-  if(previous){const old=JSON.parse(previous);if(old&&[2,3,4,5].includes(old.v)&&!lsGet(key+'_backup_v'+old.v)){
+  if(previous){const old=JSON.parse(previous);if(old&&[2,3,4,5,6].includes(old.v)&&!lsGet(key+'_backup_v'+old.v)){
     try{localStorage.setItem(key+'_backup_v'+old.v,previous);if(lsGet(key+'_backup_v'+old.v)!==previous)throw 0}
     catch(e){toast('Falha ao preservar backup anterior. Libere espaço para salvar.');return 0}
   }}
-  const j=JSON.stringify({v:6,gv:GEN,id:G.id,x:G.px,y:G.py,boat:G.boat,exp:b64(G.ex),collection:serializeCollection(G.collection),inventory:serializeInventory(G.inventory),storage:serializeStorage(G.storage)});
+  const j=JSON.stringify({v:7,gv:GEN,id:G.id,x:G.px,y:G.py,boat:G.boat,exp:b64(G.ex),collection:serializeCollection(G.collection),inventory:serializeInventory(G.inventory),storage:serializeStorage(G.storage),combat:serializeCombat(G.combat)});
   localStorage.setItem(key,j);if(localStorage.getItem(key)!==j)throw 0;
   G.collection.dirty=false;G.saveDueAt=0;
   const a=idx(),m=a.find(o=>o.id==G.id);if(m){m.played=Date.now();if(!putIdx(a)){toast('Progresso salvo; falha ao atualizar a lista de mundos.');return 1}}
@@ -3930,7 +3958,8 @@ try{
 function setPx(i){const w=G.w,c=w.ob[i]==1?[47,107,42]:MC[w.ter[i]],d=G.img.data,j=i*4;d[j]=c[0];d[j+1]=c[1];d[j+2]=c[2]}
 function reveal(cx,cy,r){const N=G.w.N,ex=G.ex;for(let y=Math.max(0,cy-r);y<=Math.min(N-1,cy+r);y++)for(let x=Math.max(0,cx-r);x<=Math.min(N-1,cx+r);x++){if((x-cx)**2+(y-cy)**2>r*r)continue;const i=y*N+x;if((ex[i>>3]>>(i&7))&1)continue;ex[i>>3]|=1<<(i&7);setPx(i)}G.dirty=1}
 function start(w,sv){const N=w.N,mc=document.createElement('canvas');mc.width=mc.height=N;const mx=mc.getContext('2d'),img=mx.createImageData(N,N);for(let i=0;i<N*N;i++){const j=i*4;img.data[j]=11;img.data[j+1]=18;img.data[j+2]=25;img.data[j+3]=255}
-G={w,id:w.id,mc,mx,img,ex:new Uint8Array((N*N+7)>>3),px:(w.sp.x+.5)*T,py:(w.sp.y+.5)*T,boat:0,dir:0,an:0,mv:0,tx:-1,ty:-1,dirty:1,mz:1,mpx:0,mpy:0,collection:createCollection(),storage:createStorage(),view:null,inventory:restoreInventory(sv&&sv.v>=4?sv.inventory:null,sv&&sv.v===3&&sv.collection?sv.collection.materials:null),saveDueAt:0,unsavedChanges:false,lastSaveFailed:false,saveProtected:!!(sv&&sv.v>=4&&!safeSavedInventory(sv.inventory))};
+G={w,id:w.id,mc,mx,img,ex:new Uint8Array((N*N+7)>>3),px:(w.sp.x+.5)*T,py:(w.sp.y+.5)*T,boat:0,dir:0,an:0,mv:0,tx:-1,ty:-1,dirty:1,mz:1,mpx:0,mpy:0,collection:createCollection(),storage:createStorage(),combat:createCombat(sv&&sv.v>=7?sv.combat:null),view:null,inventory:restoreInventory(sv&&sv.v>=4?sv.inventory:null,sv&&sv.v===3&&sv.collection?sv.collection.materials:null),saveDueAt:0,unsavedChanges:false,lastSaveFailed:false,saveProtected:!!(sv&&sv.v>=4&&!safeSavedInventory(sv.inventory))};
+if(sv&&sv.v>=7&&!validCombatSave(sv.combat))G.saveProtected=true;
 if(sv&&sv.gv!==GEN)toast('Save de gerador antigo: o mapa mudou, progresso reiniciado');
 if(sv&&sv.gv===GEN){
   // Generation validation has finished; apply the sparse player overlay before collision/minimap.
@@ -3948,7 +3977,7 @@ if(!storageReady(G.storage,w,G.inventory)){
 if(sv&&sv.v>=6&&sv.gv!==GEN){G.storage.protected=true;G.saveProtected=true;}
 chestOpen=false;openChestId=null;storageBusy=false;clearStorageUI();
 connectInventoryMaterials();
-if(blocked(w,G.px,G.py,G.boat)){G.px=(w.sp.x+.5)*T;G.py=(w.sp.y+.5)*T;G.boat=0;toast('Posição salva inválida: voltando ao spawn')}G.cx=G.px;G.cy=G.py;mapOpen=0;inventoryOpen=!!G.inventory.cursor;craftingOpen=false;craftingBusy=false;clearCraftingUI();keys={};$('m').style.display='none';renderInventoryUI();renderCraftingUI();if(G.inventory.cursor&&G.storage.cursorOrigin&&G.storage.cursorOrigin.container!=='player'){const recovered=G.storage.byId.get(G.storage.cursorOrigin.container);if(recovered&&storageAccessCheck(recovered).ok)openStorageChest(recovered.id)}renderStorageUI();if(G.saveProtected){G.unsavedChanges=true;toast('Dados recuperados parcialmente em memória; save original protegido.')}if(sv&&sv.v<6&&!G.saveProtected)G.saveDueAt=performance.now()+600;if(Object.values(G.inventory.pending).some(n=>n>0))toast('Recursos antigos preservados: abra I para recolher os pendentes.')}
+if(blocked(w,G.px,G.py,G.boat)){G.px=(w.sp.x+.5)*T;G.py=(w.sp.y+.5)*T;G.boat=0;toast('Posição salva inválida: voltando ao spawn')}G.cx=G.px;G.cy=G.py;mapOpen=0;inventoryOpen=!!G.inventory.cursor;craftingOpen=false;craftingBusy=false;clearCraftingUI();keys={};$('m').style.display='none';if(COMBAT_TRAINING)resetTrainingTargets();renderCombatHUD();renderInventoryUI();renderCraftingUI();if(G.inventory.cursor&&G.storage.cursorOrigin&&G.storage.cursorOrigin.container!=='player'){const recovered=G.storage.byId.get(G.storage.cursorOrigin.container);if(recovered&&storageAccessCheck(recovered).ok)openStorageChest(recovered.id)}renderStorageUI();if(G.saveProtected){G.unsavedChanges=true;toast('Dados recuperados parcialmente em memória; save original protegido.')}if(sv&&sv.v<6&&!G.saveProtected)G.saveDueAt=performance.now()+600;if(Object.values(G.inventory.pending).some(n=>n>0))toast('Recursos antigos preservados: abra I para recolher os pendentes.')}
 const setBusy=b=>document.querySelectorAll('#m button').forEach(x=>x.disabled=!!b);
 function run(m,sv){if(busy)return;busy=1;setBusy(1);const it=gen(m.name,m.seed,m.size),t0=performance.now();
 (function step(){const r=it.next();if(r.done){busy=0;setBusy(0);const w=r.value;if(!w.ok){$('ms').textContent='Não foi possível gerar um mundo válido com esta seed/tamanho em 12 tentativas ('+[...new Set(w.log.flat())].join('; ')+'). Tente outra seed.';return}w.tgen=Math.round(performance.now()-t0);w.name=m.name;w.id=m.id;start(w,sv);if(m.isNew){const a=idx();a.push({id:m.id,name:m.name,seed:m.seed,size:m.size,created:Date.now(),played:Date.now()});if(!putIdx(a))toast('Falha ao registrar o mundo no armazenamento');else save(1)}}else{$('ms').textContent=r.value+'…';setTimeout(step,0)}})()}
@@ -3959,18 +3988,18 @@ const rnd=()=>'S'+(Math.random()*1e9|0).toString(36).toUpperCase();
 $('rn').onclick=()=>$('sd').value=rnd();
 $('cr').onclick=()=>{const s=$('sd').value.trim()||rnd();$('sd').value=s;run({id:'w'+Date.now().toString(36)+(Math.random()*1e6|0).toString(36),name:$('nm').value.trim()||'Mundo '+s,seed:s,size:+$('sz').value,isNew:1})};
 function migrate(){const o=lsGet(SK);if(!o||lsGet('origens_migrated'))return;try{const v=JSON.parse(o);if(!v||!v.seed||!v.size||typeof v.exp!=='string')throw 0;const id='m'+Date.now().toString(36),a=idx();localStorage.setItem(WK+id,JSON.stringify({v:2,gv:1,id,x:v.x,y:v.y,boat:v.boat,exp:v.exp}));a.push({id,name:(v.name||'Mundo')+' (importado)',seed:v.seed,size:v.size,created:Date.now(),played:Date.now()});if(putIdx(a))localStorage.setItem('origens_migrated','1')}catch(e){}}
-function loadWorld(id){const m=idx().find(o=>o.id==id);if(!m){$('ms').textContent='Mundo inexistente.';return}try{const sv=JSON.parse(lsGet(WK+id));if(!sv||![2,3,4,5,6].includes(sv.v)||typeof sv.exp!=='string'||atob(sv.exp).length!==((m.size*m.size+7)>>3))throw 0;run(m,sv)}catch(e){$('ms').textContent='Save corrompido ou incompatível. O arquivo não foi apagado.'}}
-function menu(){chestOpen=false;openChestId=null;storageBusy=false;clearStorageUI();inventoryOpen=false;craftingOpen=false;craftingBusy=false;keys={};clearInventoryUI();clearCraftingUI();migrate();const l=$('wl');l.textContent='';idx().sort((a,b)=>b.played-a.played).forEach(m=>{const r=document.createElement('div'),i=document.createElement('div'),p=document.createElement('button'),x=document.createElement('button');r.className='r';i.textContent=m.name+' · '+m.seed+' · '+m.size+'² · '+new Date(m.played).toLocaleDateString();p.textContent='Jogar';p.onclick=()=>loadWorld(m.id);x.textContent='Excluir';let c=0;x.onclick=()=>{if(!c){c=1;x.textContent='Confirmar?';setTimeout(()=>{c=0;x.textContent='Excluir'},3000)}else{try{localStorage.removeItem(WK+m.id);localStorage.removeItem(WK+m.id+'_backup_v2');localStorage.removeItem(WK+m.id+'_backup_v3');localStorage.removeItem(WK+m.id+'_backup_v4');localStorage.removeItem(WK+m.id+'_backup_v5');putIdx(idx().filter(o=>o.id!=m.id))}catch(e){}menu()}};r.append(i,p,x);l.append(r)});$('m').style.display='flex';$('ms').textContent=''}
+function loadWorld(id){const m=idx().find(o=>o.id==id);if(!m){$('ms').textContent='Mundo inexistente.';return}try{const sv=JSON.parse(lsGet(WK+id));if(!sv||![2,3,4,5,6,7].includes(sv.v)||typeof sv.exp!=='string'||atob(sv.exp).length!==((m.size*m.size+7)>>3))throw 0;run(m,sv)}catch(e){$('ms').textContent='Save corrompido ou incompatível. O arquivo não foi apagado.'}}
+function menu(){renderCombatHUD();chestOpen=false;openChestId=null;storageBusy=false;clearStorageUI();inventoryOpen=false;craftingOpen=false;craftingBusy=false;keys={};clearInventoryUI();clearCraftingUI();migrate();const l=$('wl');l.textContent='';idx().sort((a,b)=>b.played-a.played).forEach(m=>{const r=document.createElement('div'),i=document.createElement('div'),p=document.createElement('button'),x=document.createElement('button');r.className='r';i.textContent=m.name+' · '+m.seed+' · '+m.size+'² · '+new Date(m.played).toLocaleDateString();p.textContent='Jogar';p.onclick=()=>loadWorld(m.id);x.textContent='Excluir';let c=0;x.onclick=()=>{if(!c){c=1;x.textContent='Confirmar?';setTimeout(()=>{c=0;x.textContent='Excluir'},3000)}else{try{localStorage.removeItem(WK+m.id);localStorage.removeItem(WK+m.id+'_backup_v2');localStorage.removeItem(WK+m.id+'_backup_v3');localStorage.removeItem(WK+m.id+'_backup_v4');localStorage.removeItem(WK+m.id+'_backup_v5');localStorage.removeItem(WK+m.id+'_backup_v6');putIdx(idx().filter(o=>o.id!=m.id))}catch(e){}menu()}};r.append(i,p,x);l.append(r)});$('m').style.display='flex';$('ms').textContent=''}
 menu();
 // ===== Colisão, jogador, câmera =====
-function blocked(w,x,y,boat,ignoreIndex=-1){const N=w.N,l=x-6,r=x+6,t=y-8;for(let ty=Math.floor(t/T);ty<=Math.floor(y/T);ty++)for(let tx=Math.floor(l/T);tx<=Math.floor(r/T);tx++){if(tx<0||ty<0||tx>=N||ty>=N)return 1;const i=ty*N+tx,tt=w.ter[i],chest=i===ignoreIndex?null:storageChestAt(w,i);if(chest&&storageChestBlocks(chest,x,y))return 1;if(boat){if(tt>2)return 1;continue}if(tt<3||tt==8)return 1;const o=w.ob[i];if(o>0&&o<4&&i!==ignoreIndex){const bx=tx*T,by=ty*T,[a,c,d,e]=o==1?[11,12,21,26]:[3,6,29,30];if(r>bx+a&&l<bx+d&&y>by+c&&t<by+e)return 1}}return 0}
+function blocked(w,x,y,boat,ignoreIndex=-1){if(combatTargetBlocks(w,x,y))return 1;const N=w.N,l=x-6,r=x+6,t=y-8;for(let ty=Math.floor(t/T);ty<=Math.floor(y/T);ty++)for(let tx=Math.floor(l/T);tx<=Math.floor(r/T);tx++){if(tx<0||ty<0||tx>=N||ty>=N)return 1;const i=ty*N+tx,tt=w.ter[i],chest=i===ignoreIndex?null:storageChestAt(w,i);if(chest&&storageChestBlocks(chest,x,y))return 1;if(boat){if(tt>2)return 1;continue}if(tt<3||tt==8)return 1;const o=w.ob[i];if(o>0&&o<4&&i!==ignoreIndex){const bx=tx*T,by=ty*T,[a,c,d,e]=o==1?[11,12,21,26]:[3,6,29,30];if(r>bx+a&&l<bx+d&&y>by+c&&t<by+e)return 1}}return 0}
 function toggleBoat(){const g=G,w=g.w,N=w.N,tx=Math.floor(g.px/T),ty=Math.floor(g.py/T);
 let bd=1e9,bx=-1,by=-1;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const x=tx+dx,y=ty+dy;if(x<0||y<0||x>=N||y>=N)continue;const i=y*N+x,t=w.ter[i],cx=(x+.5)*T,cy=(y+.5)*T,dd=Math.hypot(cx-g.px,cy-g.py);
 if(!g.boat&&t<3&&w.sea[i]&&!blocked(w,cx,cy,1)&&dd<bd){bd=dd;bx=cx;by=cy}
 if(g.boat&&t>2&&t!=8&&(w.ob[i]<1||w.ob[i]>3)&&!blocked(w,cx,cy,0)&&dd<bd){bd=dd;bx=cx;by=cy}}
 if(bx>=0){g.px=bx;g.py=by;g.boat^=1;toast(g.boat?'Jangada: E para desembarcar':'Desembarcou');return}
 toast(g.boat?'Sem ponto seguro para desembarcar':'Chegue perto da costa para embarcar')}
-function update(dt){const g=G,w=g.w;let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);if(mapOpen||inventoryOpen||craftingOpen||chestOpen)dx=dy=0;
+function update(dt,combatDt=dt){updateCombat(combatDt);const g=G,w=g.w;let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);if(mapOpen||inventoryOpen||craftingOpen||chestOpen||G.combat.motionFrame||!G.combat.stats.health)dx=dy=0;
 const mv=dx||dy;if(mv){const l=Math.hypot(dx,dy);dx/=l;dy/=l;const sp=(g.boat?150:128)*dt;let n=g.px+dx*sp;if(!blocked(w,n,g.py,g.boat))g.px=n;n=g.py+dy*sp;if(!blocked(w,g.px,n,g.boat))g.py=n;g.dir=Math.abs(dx)>Math.abs(dy)?(dx>0?3:2):(dy>0?0:1)}
 g.mv=mv;g.an+=mv?dt:0;const tx=Math.floor(g.px/T),ty=Math.floor(g.py/T);if(tx!=g.tx||ty!=g.ty){g.tx=tx;g.ty=ty;reveal(tx,ty,10)}
 if(!inventoryOpen&&!craftingOpen&&!chestOpen){const z=ZS[zi],vw=W0/z,vh=H0/z,k=1-Math.exp(-8*dt),WW=w.N*T;g.cx+=(g.px-g.cx)*k;g.cy+=(g.py-24-g.cy)*k;g.cx=Math.max(vw/2,Math.min(WW-vw/2,g.cx));g.cy=Math.max(vh/2,Math.min(WW-vh/2,g.cy));}
@@ -3981,7 +4010,7 @@ if(g.boat){ctx.fillStyle='#6b4423';ctx.fillRect(X-6,y-12,32,18);ctx.fillStyle='#
 const o=g.boat?-4:0;ctx.fillStyle='#34407a';ctx.fillRect(X+4,Y+20+o,5,8-(s>.3?2:0));ctx.fillRect(X+11,Y+20+o,5,8-(s<-.3?2:0));
 ctx.fillStyle='#d9534f';ctx.fillRect(X+3,Y+11+o,14,10);ctx.fillStyle='#f0c8a0';ctx.fillRect(X+1,Y+12+o,3,8);ctx.fillRect(X+16,Y+12+o,3,8);ctx.fillRect(X+4,Y+1+o,12,11);
 ctx.fillStyle='#5a3a22';ctx.fillRect(X+3,Y+o,14,d==1?10:5);ctx.fillStyle='#222';
-if(d==0){ctx.fillRect(X+7,Y+7+o,2,2);ctx.fillRect(X+12,Y+7+o,2,2)}else if(d==2)ctx.fillRect(X+6,Y+7+o,2,2);else if(d==3)ctx.fillRect(X+13,Y+7+o,2,2);drawHeldTool(X,Y+o,d)}
+if(d==0){ctx.fillRect(X+7,Y+7+o,2,2);ctx.fillRect(X+12,Y+7+o,2,2)}else if(d==2)ctx.fillRect(X+6,Y+7+o,2,2);else if(d==3)ctx.fillRect(X+13,Y+7+o,2,2);drawHeldTool(X,Y+o,d);drawHeldWeapon()}
 function drawHeldTool(X,Y,d){const g=G,t=activeTool();if(!t||g.boat)return;const sw=g.swing,p=sw&&sw.tool===t.id?(performance.now()-sw.at)/260:2,k=p>=0&&p<1?Math.sin(p*Math.PI):0;d=p>=0&&p<1?sw.direction:toolFacing();const dx=d===2||d===1?-1:1,sx=d===2?X-1:d===1?X+3:X+17,sy=Y+(d===1?14:d===0?22:19)-Math.round(k*6);
 ctx.save();
 ctx.fillStyle='#6b4423';for(let i=0;i<11;i++)ctx.fillRect(sx+dx*(i>>1),sy-i,2,1);
@@ -4000,7 +4029,9 @@ const pr=Math.floor(g.py/T),nearChest=nearestStorageChest();
 for(let ty=Math.max(0,y0-3);ty<=Math.min(N-1,y1+1);ty++){for(let tx=Math.max(0,x0-2);tx<=Math.min(N-1,x1+2);tx++){const i=ty*N+tx,o=w.ob[i];if(o){nobj++;const el=w.I[w.own[i]-1]?w.I[w.own[i]-1].el:0;
 if(o==1)ctx.drawImage(TS[el][hx(tx,ty,11)<.5?0:1],tx*T-16,ty*T+T-96);else if(o==2)ctx.drawImage(RS[el],tx*T,ty*T);else if(o==3)ctx.drawImage(CS[el==3?1:0],tx*T,ty*T);else if(o==4)ctx.drawImage(RD,tx*T,ty*T);else ctx.drawImage(SH,tx*T,ty*T)}
 const chest=storageChestAt(w,i);if(chest&&(ty!==pr||ty*T+30<=g.py))drawStorageChest(chest,chest===nearChest);}
-if(ty==pr){player(g.px,g.py);if(ty*T+30>g.py)for(let tx=Math.max(0,x0-2);tx<=Math.min(N-1,x1+2);tx++){const chest=storageChestAt(w,ty*N+tx);if(chest)drawStorageChest(chest,chest===nearChest)}}}
+for(const target of g.combat.targets)if(Math.floor((target.y+12)/T)===ty&&(ty!==pr||target.y+12<=g.py))drawCombatTarget(target);
+if(ty==pr){player(g.px,g.py);for(const target of g.combat.targets)if(Math.floor((target.y+12)/T)===ty&&target.y+12>g.py)drawCombatTarget(target);if(ty*T+30>g.py)for(let tx=Math.max(0,x0-2);tx<=Math.min(N-1,x1+2);tx++){const chest=storageChestAt(w,ty*N+tx);if(chest)drawStorageChest(chest,chest===nearChest)}}}
+drawCombatWorld();
 drawStoragePreview();
 drawCollectionFeedback();
 g.nobj=nobj;g.nch=((x1>>5)-(x0>>5)+1)*((y1>>5)-(y0>>5)+1);
@@ -4022,6 +4053,206 @@ ctx.save();ctx.beginPath();ctx.rect(10,50,W0-20,H0-90);ctx.clip();ctx.drawImage(
 ctx.strokeStyle='#8fd3c7';ctx.lineWidth=2;ctx.strokeRect(10,50,W0-20,H0-90);ctx.font='bold 14px monospace';ctx.fillStyle='#8fd3c7';ctx.fillText(g.w.name+'  ·  seed: '+g.w.seed+'  ·  '+N+'×'+N+'  ·  você: '+g.tx+','+g.ty,14,16);
 ctx.fillStyle='#bfe6dc';ctx.fillText('Arraste: mover · Roda ou +/-: zoom · M/Esc: fechar',14,H0-28);
 ['#44b5c9 água','#e6d49a praia','#5aa13f grama','#8a8478 rocha','#4a3f3f vulcão','#e8531c lava'].forEach((l,i)=>{ctx.fillStyle=l.slice(0,7);ctx.fillRect(430+i*88,H0-27,10,10);ctx.fillStyle='#bfe6dc';ctx.font='12px monospace';ctx.fillText(l.slice(8),444+i*88,H0-28)});drawBtn()}
+// ===== Combate v0.8: modelo e controle =====
+const COMBAT_RULES = Object.freeze({maxHealth:100,maxStamina:100,maxElementalEnergy:100,staminaRegen:12,energyRegen:6,staminaDelay:.8,energyDelay:1.5,dodgeCost:20,dodgeCooldown:1,dodgeDuration:.18,dodgeDistance:48,specialCooldown:3,hurtImmunity:.5,projectileSpeed:220,projectileRange:180,maxProjectiles:32,maxTargets:8,maxFeedback:64,dodgeKey:' '});
+const WEAPON_REGISTRY = Object.freeze({
+  primitive_sword:Object.freeze({id:'primitive_sword',shape:'arc',damage:12,range:45,arc:Math.PI*.65,cooldown:.5,duration:.24,specialDamage:24,specialRange:52,specialArc:Math.PI*.9,cost:20,pool:'stamina'}),
+  primitive_spear:Object.freeze({id:'primitive_spear',shape:'thrust',damage:15,range:68,arc:Math.PI/8,cooldown:.65,duration:.24,specialDamage:25,specialRange:80,specialArc:Math.PI/8,cost:25,pool:'stamina'}),
+  training_staff:Object.freeze({id:'training_staff',shape:'projectile',damage:8,range:180,arc:0,cooldown:.55,duration:.24,specialDamage:16,specialRange:180,specialArc:0,cost:20,pool:'elementalEnergy'}),
+});
+const COMBAT_TRAINING = new URLSearchParams(location.search).get('treino') === '1' || new URLSearchParams(location.hash?.slice(1)||'').get('treino') === '1';
+function validCombatSave(data){
+  if(!data||data.version!==1||!data.stats||!data.cooldowns)return false;
+  return ['health','stamina','elementalEnergy'].every(k=>Number.isFinite(data.stats[k])&&data.stats[k]>=0&&data.stats[k]<=100)&&
+    ['attack','special','dodge'].every(k=>Number.isFinite(data.cooldowns[k])&&data.cooldowns[k]>=0&&data.cooldowns[k]<=3);
+}
+function createCombat(data=null){
+  const valid=validCombatSave(data),stats=valid?{health:data.stats.health,stamina:data.stats.stamina,elementalEnergy:data.stats.elementalEnergy}:{health:100,stamina:100,elementalEnergy:100};
+  return {stats,state:stats.health?'idle':'disabled',clock:0,nextAttack:valid?data.cooldowns.attack:0,nextSpecial:valid?data.cooldowns.special:0,nextDodge:valid?data.cooldowns.dodge:0,weaponReady:new Map(),lastStaminaUse:0,lastEnergyUse:0,aim:{x:1,y:0},active:null,dodge:null,hitUntil:0,hurtSources:new Map(),projectiles:[],targets:[],feedback:[],serial:0,lastNotice:-Infinity,hudKey:''};
+}
+function serializeCombat(c){
+  const data={version:1,stats:{health:c.stats.health,stamina:c.stats.stamina,elementalEnergy:c.stats.elementalEnergy},cooldowns:{attack:Math.max(0,Math.min(3,c.nextAttack-c.clock)),special:Math.max(0,Math.min(3,c.nextSpecial-c.clock)),dodge:Math.max(0,Math.min(3,c.nextDodge-c.clock))}};
+  if(!validCombatSave(data))throw new TypeError('invalid_combat');return data;
+}
+function activeWeapon(){
+  const inv=G&&G.inventory;if(!inv||!Number.isInteger(inv.selected)||inv.selected<0||inv.selected>=HOTBAR_SIZE)return null;
+  const stack=inv.slots[inv.selected];return stack&&stack.quantity===1&&Object.hasOwn(WEAPON_REGISTRY,stack.itemId)?WEAPON_REGISTRY[stack.itemId]:null;
+}
+function combatDirection(){
+  const c=G.combat,p=G.aimPoint&&screenToWorld(G.aimPoint.x,G.aimPoint.y);
+  if(p){const x=p.x-G.px,y=p.y-(G.py-12),length=Math.hypot(x,y);if(Number.isFinite(length)&&length>.001)c.aim={x:x/length,y:y/length};}
+  return {...c.aim};
+}
+function combatInputAllowed(){return !!G&&!!G.combat&&worldInputActive()&&!mapOpen&&!G.boat&&!document.hidden&&!G.inventory.cursor&&G.combat.stats.health>0&&['health','stamina','elementalEnergy'].every(k=>Number.isFinite(G.combat.stats[k])&&G.combat.stats[k]>=0&&G.combat.stats[k]<=100);}
+function combatDirty(schedule=true){if(!G)return;G.unsavedChanges=true;if(schedule&&!G.saveDueAt)G.saveDueAt=performance.now()+600;}
+function combatReject(reason){
+  const c=G&&G.combat;if(c&&c.clock-c.lastNotice>.6){toast(({energy:'Energia elemental insuficiente.',stamina:'Vigor insuficiente.',cooldown:'Habilidade em recarga.',blocked:'Caminho bloqueado.',inactive:'Combate indisponível agora.',weapon:'Selecione uma arma na barra.'})[reason]||'Ação indisponível.');c.lastNotice=c.clock;}
+  return {ok:false,reason};
+}
+function combatObstacle(x,y){
+  if(!G||!Number.isFinite(x)||!Number.isFinite(y)||x<0||y<0||x>=G.w.N*T||y>=G.w.N*T)return true;
+  const tx=Math.floor(x/T),ty=Math.floor(y/T),i=ty*G.w.N+tx,o=G.w.ob[i],lx=x-tx*T,ly=y-ty*T;
+  if(o>0&&o<4){const [l,t,r,b]=o===1?[11,12,21,26]:[3,6,29,30];if(lx>=l&&lx<=r&&ly>=t&&ly<=b)return true;}
+  return !!storageChestAt(G.w,i)&&lx>=4&&lx<=28&&ly>=10&&ly<=30;
+}
+function combatSegmentClear(a,b){
+  const length=Math.hypot(b.x-a.x,b.y-a.y);if(!Number.isFinite(length)||length>300)return false;
+  const steps=Math.max(1,Math.ceil(length/3));for(let i=0;i<=steps;i++)if(combatObstacle(a.x+(b.x-a.x)*i/steps,a.y+(b.y-a.y)*i/steps))return false;return true;
+}
+function combatTargetValid(t){return !!t&&typeof t.id==='string'&&[t.x,t.y,t.radius,t.health,t.maxHealth].every(Number.isFinite)&&t.radius>0&&t.radius<=24&&t.health>=0&&t.maxHealth>0&&t.health<=t.maxHealth;}
+function combatTargetBlocks(w,x,y){return !!G&&G.w===w&&!!G.combat&&G.combat.targets.some(t=>combatTargetValid(t)&&t.health>0&&x+6>t.x-9&&x-6<t.x+9&&y>t.y-10&&y-8<t.y+12);}
+function applyTargetDamage(target,damage,attack){
+  if(!combatTargetValid(target)||target.health<=0||!Number.isFinite(damage)||damage<=0||!attack||!(attack.hit instanceof Set)||attack.hit.has(target.id))return false;
+  attack.hit.add(target.id);const applied=Math.min(target.health,damage);target.health-=applied;target.flashUntil=G.combat.clock+.15;
+  G.combat.feedback.push({x:target.x,y:target.y-26,amount:applied,born:G.combat.clock});
+  if(G.combat.feedback.length>COMBAT_RULES.maxFeedback)G.combat.feedback.shift();return true;
+}
+function resolveMelee(attack){
+  for(const target of G.combat.targets){
+    if(!combatTargetValid(target)||target.health<=0)continue;
+    const dx=target.x-attack.origin.x,dy=target.y-attack.origin.y,d=Math.hypot(dx,dy),front=dx*attack.direction.x+dy*attack.direction.y;
+    if(front<0||d>attack.range+target.radius)continue;
+    const angle=d<.001?1:front/d,padding=Math.asin(Math.min(1,target.radius/Math.max(d,1)));
+    if(angle<Math.cos(Math.min(Math.PI,attack.arc/2+padding)))continue;
+    if(combatSegmentClear(attack.origin,target))applyTargetDamage(target,attack.damage,attack);
+  }
+}
+function beginCombatAttack(special=false){
+  if(!combatInputAllowed())return combatReject('inactive');
+  const c=G.combat,weapon=activeWeapon();if(!weapon)return combatReject('weapon');
+  if(c.active||c.dodge||c.clock<c.hitUntil||c.clock<c.nextAttack||c.clock<(c.weaponReady.get(weapon.id)||0)||(special&&c.clock<c.nextSpecial))return combatReject('cooldown');
+  if(special&&c.stats[weapon.pool]<weapon.cost)return combatReject(weapon.pool==='stamina'?'stamina':'energy');
+  if(weapon.shape==='projectile'&&c.projectiles.length>=COMBAT_RULES.maxProjectiles)return combatReject('cooldown');
+  const direction=combatDirection(),origin={x:G.px,y:G.py-12};
+  if(![direction.x,direction.y].every(Number.isFinite)||Math.hypot(direction.x,direction.y)<.99)return combatReject('inactive');
+  if(weapon.shape==='projectile'&&combatObstacle(origin.x,origin.y))return combatReject('blocked');
+  if(special&&weapon.shape==='thrust'&&blocked(G.w,G.px+direction.x*3,G.py+direction.y*3,0))return combatReject('blocked');
+  const attack={id:'attack-'+(++c.serial),weaponId:weapon.id,direction,origin,damage:special?weapon.specialDamage:weapon.damage,range:special?weapon.specialRange:weapon.range,arc:special?weapon.specialArc:weapon.arc,shape:weapon.shape,special,started:c.clock,duration:weapon.duration,effectAt:.08,resolved:false,hit:new Set()};
+  c.active=attack;c.state=special?'special_attacking':'attacking';c.nextAttack=c.clock+weapon.cooldown;c.weaponReady.set(weapon.id,c.nextAttack);
+  if(special){c.stats[weapon.pool]-=weapon.cost;c.nextSpecial=c.clock+COMBAT_RULES.specialCooldown;if(weapon.pool==='stamina')c.lastStaminaUse=c.clock;else c.lastEnergyUse=c.clock;}
+  combatDirty();return {ok:true,id:attack.id};
+}
+function beginCombatDodge(){
+  if(!combatInputAllowed())return combatReject('inactive');const c=G.combat;
+  if(c.active||c.dodge||c.clock<c.hitUntil||c.clock<c.nextDodge)return combatReject('cooldown');
+  if(c.stats.stamina<COMBAT_RULES.dodgeCost)return combatReject('stamina');
+  let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),y=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);const length=Math.hypot(x,y);
+  const direction=length?{x:x/length,y:y/length}:combatDirection();
+  if(blocked(G.w,G.px+direction.x*3,G.py+direction.y*3,0))return combatReject('blocked');
+  c.stats.stamina-=COMBAT_RULES.dodgeCost;c.lastStaminaUse=c.clock;c.nextDodge=c.clock+COMBAT_RULES.dodgeCooldown;c.dodge={direction,remaining:COMBAT_RULES.dodgeDistance,until:c.clock+COMBAT_RULES.dodgeDuration};c.state='dodging';combatDirty();return {ok:true};
+}
+function combatMove(direction,distance){
+  const steps=Math.max(1,Math.ceil(distance/3));let moved=0;
+  for(let i=0;i<steps;i++){const x=G.px+direction.x*distance/steps,y=G.py+direction.y*distance/steps;if(blocked(G.w,x,y,0))break;G.px=x;G.py=y;moved+=distance/steps;}
+  return moved;
+}
+function applyPlayerDamage(amount,source='training'){
+  if(!combatInputAllowed()||!Number.isFinite(amount)||amount<=0||amount>10000||typeof source!=='string'||source.length>80)return false;
+  const c=G.combat;if(c.clock<(c.hurtSources.get(source)||0))return false;
+  if(c.hurtSources.size>=8)c.hurtSources.delete(c.hurtSources.keys().next().value);
+  c.hurtSources.set(source,c.clock+COMBAT_RULES.hurtImmunity);c.stats.health=Math.max(0,c.stats.health-amount);c.hitUntil=c.clock+.12;c.active=null;c.dodge=null;c.state=c.stats.health?'hit_reaction':'disabled';if(!c.stats.health)c.projectiles=[];
+  combatDirty();renderCombatHUD();return true;
+}
+function combatProjectileStep(projectile,dt){
+  if(!projectile||![projectile.x,projectile.y,projectile.direction?.x,projectile.direction?.y,projectile.damage,projectile.remaining,projectile.life].every(Number.isFinite)||Math.abs(Math.hypot(projectile.direction.x,projectile.direction.y)-1)>.001||projectile.damage<=0)return false;
+  if(combatObstacle(projectile.x,projectile.y))return false;
+  const distance=Math.min(COMBAT_RULES.projectileSpeed*dt,projectile.remaining),steps=Math.max(1,Math.ceil(distance/3));
+  for(let i=0;i<steps;i++){
+    projectile.x+=projectile.direction.x*distance/steps;projectile.y+=projectile.direction.y*distance/steps;
+    if(combatObstacle(projectile.x,projectile.y))return false;
+    for(const target of G.combat.targets)if(combatTargetValid(target)&&target.health>0&&Math.hypot(projectile.x-target.x,projectile.y-target.y)<=target.radius+2){applyTargetDamage(target,projectile.damage,projectile);return false;}
+  }
+  projectile.remaining-=distance;projectile.life-=dt;return projectile.remaining>0&&projectile.life>0;
+}
+function updateCombat(dt){
+  if(!G?.combat)return;const c=G.combat;
+  if(!Number.isFinite(dt)||dt<=0)return;dt=Math.min(.25,dt);c.motionFrame=!!c.dodge||!!(c.active?.special&&c.active.shape==='thrust');
+  if(!combatInputAllowed()){c.active=null;c.dodge=null;c.projectiles=[];c.state=c.stats.health?'idle':'disabled';renderCombatHUD();return;}
+  combatDirection();c.clock+=dt;
+  for(const [id,until]of c.hurtSources)if(until<=c.clock)c.hurtSources.delete(id);
+  const before=[c.stats.stamina,c.stats.elementalEnergy];
+  if(c.clock>c.lastStaminaUse+COMBAT_RULES.staminaDelay)c.stats.stamina=Math.min(100,c.stats.stamina+COMBAT_RULES.staminaRegen*Math.min(dt,c.clock-c.lastStaminaUse-COMBAT_RULES.staminaDelay));
+  if(c.clock>c.lastEnergyUse+COMBAT_RULES.energyDelay)c.stats.elementalEnergy=Math.min(100,c.stats.elementalEnergy+COMBAT_RULES.energyRegen*Math.min(dt,c.clock-c.lastEnergyUse-COMBAT_RULES.energyDelay));
+  if(before[0]!==c.stats.stamina||before[1]!==c.stats.elementalEnergy)combatDirty(false);
+  if(c.dodge){const distance=Math.min(c.dodge.remaining,COMBAT_RULES.dodgeDistance/COMBAT_RULES.dodgeDuration*dt),moved=combatMove(c.dodge.direction,distance);c.dodge.remaining-=moved;if(moved<distance||c.clock>=c.dodge.until||c.dodge.remaining<=0)c.dodge=null;}
+  const attack=c.active;
+  if(attack){
+    if(attack.special&&attack.shape==='thrust')combatMove(attack.direction,48/attack.duration*Math.min(dt,Math.max(0,attack.duration-(c.clock-dt-attack.started))));
+    if(!attack.resolved&&c.clock-attack.started>=attack.effectAt){
+      attack.resolved=true;
+      if(attack.shape==='projectile')c.projectiles.push({id:attack.id,emitter:G.id,x:attack.origin.x,y:attack.origin.y,direction:{...attack.direction},damage:attack.damage,remaining:COMBAT_RULES.projectileRange,life:2,born:attack.started+attack.effectAt,hit:new Set()});else resolveMelee(attack);
+    }
+    if(c.clock-attack.started>=attack.duration)c.active=null;
+  }
+  c.projectiles=c.projectiles.filter(p=>combatProjectileStep(p,Math.min(dt,Math.max(0,c.clock-p.born))));c.feedback=c.feedback.filter(f=>c.clock-f.born<.7);
+  c.state=c.dodge?'dodging':c.active?(c.active.special?'special_attacking':'attacking'):c.clock<c.hitUntil?'hit_reaction':G.mv?'moving':'idle';renderCombatHUD();
+}
+// ===== Combate v0.8: treino e apresentação =====
+function resetTrainingTargets(){
+  if(!COMBAT_TRAINING||!G||!worldInputActive()||G.boat||mapOpen)return false;
+  const c=G.combat;c.targets=[];c.projectiles=[];c.feedback=[];c.active=null;c.dodge=null;
+  for(const [dx,dy]of [[64,0],[0,-64],[-64,0],[0,64],[96,32],[-96,-32]]){
+    const x=G.px+dx,y=G.py-12+dy;
+    if(x<32||y<32||x>G.w.N*T-32||y>G.w.N*T-32||blocked(G.w,x,y+12,0)||blocked(G.w,x-8,y+12,0)||blocked(G.w,x+8,y+12,0))continue;
+    c.targets.push({id:'dummy-'+c.targets.length,x,y,radius:12,health:100,maxHealth:100,flashUntil:0});if(c.targets.length===3)break;
+  }
+  return true;
+}
+function recoverTrainingPlayer(){
+  if(!COMBAT_TRAINING||!G||G.boat||!sessionInputActive())return false;
+  G.combat.stats={health:100,stamina:100,elementalEnergy:100};G.combat.active=null;G.combat.dodge=null;G.combat.projectiles=[];G.combat.hitUntil=0;G.combat.hurtSources.clear();G.combat.state='idle';combatDirty();renderCombatHUD();return true;
+}
+function renderCombatHUD(){
+  const panel=$('combat-hud');if(!panel)return;
+  const active=!!G&&$('m').style.display==='none';panel.hidden=!active;
+  $('combat-training').hidden=!active||!COMBAT_TRAINING;
+  if(!active)return;const c=G.combat;
+  const rect=cv.getBoundingClientRect(),wrapper=$('w').getBoundingClientRect(),scale=rect.width/W0;
+  panel.style.left=rect.left-wrapper.left+10*scale+'px';panel.style.top=rect.top-wrapper.top+54*scale+'px';panel.style.width=Math.max(130,Math.min(184,184*scale))+'px';
+  $('combat-training').style.bottom=Math.max(100,innerHeight-rect.bottom+94*scale+4)+'px';
+  const key=[...Object.values(c.stats).map(v=>Math.round(v*10)),c.state,G.boat].join(':');if(c.hudKey===key)return;c.hudKey=key;
+  for(const key of ['health','stamina','elementalEnergy']){
+    const value=c.stats[key],bar=$('combat-'+key);bar.value=value;bar.setAttribute('aria-valuenow',String(value));$('combat-'+key+'-value').textContent=Math.ceil(value)+'/100';
+  }
+  $('combat-defeat').hidden=c.stats.health>0;$('combat-state').textContent=G.boat?'Navegação: combate bloqueado':({idle:'',moving:'',attacking:'Ataque',special_attacking:'Especial',dodging:'Esquiva',hit_reaction:'Dano recebido',disabled:'Derrota de teste'})[c.state]||'';
+}
+function drawCombatTarget(target){
+  if(!combatTargetValid(target))return;ctx.save();const x=Math.round(target.x),y=Math.round(target.y);
+  ctx.fillStyle='#694427';ctx.fillRect(x-2,y-3,4,25);ctx.fillRect(x-12,y+18,24,3);
+  ctx.fillStyle=G.combat.clock<target.flashUntil?'#fff2b8':target.health?'#c99a59':'#65543b';ctx.fillRect(x-8,y-10,16,19);ctx.fillRect(x-14,y-5,28,4);ctx.fillRect(x-5,y-20,10,9);
+  ctx.fillStyle='#1a2526';ctx.fillRect(x-15,y-30,30,5);ctx.fillStyle='#eb6856';ctx.fillRect(x-14,y-29,28*target.health/target.maxHealth,3);ctx.restore();
+}
+function drawCombatWorld(){
+  if(!G?.combat)return;const c=G.combat;ctx.save();
+  for(const p of c.projectiles){ctx.fillStyle='#8deeff';ctx.fillRect(Math.round(p.x)-3,Math.round(p.y)-3,6,6);ctx.fillStyle='#e6ffff';ctx.fillRect(Math.round(p.x)-1,Math.round(p.y)-1,2,2);}
+  for(const f of c.feedback){ctx.fillStyle='#fff0ba';ctx.font='bold 12px monospace';ctx.fillText(String(f.amount),f.x-5,f.y-(c.clock-f.born)*20);}
+  ctx.restore();
+}
+function drawHeldWeapon(){
+  const c=G.combat,selected=activeWeapon();if(!selected||G.boat)return;const attack=c.active,weapon=attack?WEAPON_REGISTRY[attack.weaponId]:selected;
+  const dir=attack?attack.direction:c.aim,angle=Math.atan2(dir.y,dir.x),phase=attack?Math.min(1,(c.clock-attack.started)/attack.duration):0;
+  ctx.save();ctx.translate(Math.round(G.px),Math.round(G.py-12));ctx.rotate(angle+(attack&&weapon.shape==='arc'?(phase-.5)*1.5:0));
+  const reach=attack?Math.sin(phase*Math.PI)*9:0;ctx.translate(8+reach,0);ctx.fillStyle='#9b713d';ctx.fillRect(0,-2,12,4);
+  ctx.fillStyle=weapon.shape==='projectile'?'#8deeff':'#cbd5d5';
+  if(weapon.shape==='arc'){ctx.fillRect(10,-3,18,5);ctx.fillStyle='#eeeccc';ctx.fillRect(8,-6,3,12);}else if(weapon.shape==='thrust'){ctx.fillStyle='#9b713d';ctx.fillRect(0,-2,25,3);ctx.fillStyle='#cbd5d5';ctx.fillRect(24,-4,8,7);}else{ctx.fillRect(10,-5,7,10);ctx.fillStyle='#e6ffff';ctx.fillRect(12,-3,3,5);}
+  ctx.restore();
+}
+function initCombatUI(){
+  $('training-targets').onclick=()=>resetTrainingTargets();
+  $('training-damage').onclick=()=>{if(COMBAT_TRAINING)applyPlayerDamage(10,'training-button')};
+  $('training-defeat').onclick=()=>{if(COMBAT_TRAINING)applyPlayerDamage(100,'training-button')};
+  $('training-recover').onclick=()=>recoverTrainingPlayer();
+  const enterTraining=()=>{location.hash='treino=1';location.reload()};
+  $('combat-open-training').onclick=enterTraining;
+  $('combat-training-link').textContent=COMBAT_TRAINING?'Sair do treinamento':'Abrir treinamento (desenvolvimento)';
+  $('combat-training-link').onclick=()=>{
+    if(!COMBAT_TRAINING){enterTraining();return;}
+    if(new URLSearchParams(location.search).get('treino')==='1'){const url=new URL(location.href);url.searchParams.delete('treino');url.hash='';location.href=url.href;}
+    else{location.hash='';location.reload();}
+  };
+}
+// ===== Fim do combate v0.8 =====
+
 // ===== Entrada e loop =====
 addEventListener('keydown',e=>{
 if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)||e.target.isContentEditable)return;
@@ -4034,6 +4265,7 @@ if(chestOpen){
   if(['w','a','s','d','e','m','+','-','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
   return;
 }
+if(k===COMBAT_RULES.dodgeKey&&!inventoryOpen&&!craftingOpen&&!mapOpen){e.preventDefault();beginCombatDodge();return}
 if(k==='f'&&!inventoryOpen&&!craftingOpen&&!mapOpen){e.preventDefault();openStorageChest();return}
 if(k==='c'){e.preventDefault();setCraftingOpen(!craftingOpen);return}
 if(k==='i'){e.preventDefault();setInventoryOpen(!inventoryOpen);return}
@@ -4051,23 +4283,24 @@ if(['arrowup','arrowdown',' '].includes(k))e.preventDefault();
 });
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);addEventListener('blur',()=>keys={});
 addEventListener('pagehide',()=>{keys={};save(1)});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){keys={};save(1)}});setInterval(()=>save(1),10000);
+document.addEventListener('visibilitychange',()=>{last=performance.now();if(document.hidden){keys={};if(G?.combat){G.combat.active=null;G.combat.dodge=null;G.combat.projectiles=[];}save(1)}});setInterval(()=>save(1),10000);
 let dr=0;cv.onmousedown=e=>{
-if(e.button!==0||!worldInputActive())return;
+if((e.button!==0&&e.button!==2)||!worldInputActive())return;
 const {x,y}=canvasPoint(e),b=btn();
 if(x<0||y<0||x>=W0||y>=H0)return;
-if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){revealAll();dr=0;return}
-if(mapOpen){dr=1;return}
+if(e.button===0&&x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){revealAll();dr=0;return}
+if(mapOpen){if(e.button===0)dr=1;return}
 dr=0;if(isHudPoint(x,y))return;G.aimPoint={x,y};
-const p=screenToWorld(x,y);if(p)primaryAction(p);
+const p=screenToWorld(x,y);if(e.button===2){if(activeWeapon())beginCombatAttack(true);return}if(p)primaryAction(p);
 };addEventListener('mouseup',()=>dr=0);
 cv.oncontextmenu=e=>e.preventDefault();
 cv.onmouseleave=()=>{if(G)G.aimPoint=null};
 cv.onmousemove=e=>{if(!G)return;if(dr&&worldInputActive()&&mapOpen){const r=cv.getBoundingClientRect();G.mpx+=e.movementX*W0/r.width;G.mpy+=e.movementY*H0/r.height}else if(worldInputActive()&&!mapOpen)G.aimPoint=canvasPoint(e)};
 cv.onwheel=e=>{if(G&&mapOpen){e.preventDefault();G.mz=Math.max(.5,Math.min(8,G.mz*(e.deltaY<0?1.2:1/1.2)))}};
-let last=0;function frame(ts){requestAnimationFrame(frame);const dt=Math.min(.05,(ts-last)/1000||0);last=ts;if(!G)return;fa+=dt;fc++;if(fa>.5){fps=fc/fa;fa=fc=0}update(dt);draw(ts/1000)}
+let last=0;function frame(ts){requestAnimationFrame(frame);const combatDt=Math.max(0,(ts-last)/1000||0),dt=Math.min(.05,combatDt);last=ts;if(!G)return;fa+=dt;fc++;if(fa>.5){fps=fc/fa;fa=fc=0}update(dt,combatDt);draw(ts/1000)}
 initInventoryUI();
 initCraftingUI();
 initStorageUI();
+initCombatUI();
 requestAnimationFrame(frame);
 </script></body></html>

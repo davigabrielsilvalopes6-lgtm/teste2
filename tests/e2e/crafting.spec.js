@@ -224,7 +224,7 @@ test('[07-14,25,50-53,70] scenario 2: the complete five-recipe chain conserves m
     ['ore', 7],
   ]);
   await openCrafting(page);
-  await expect(page.locator('#crafting-recipes [data-recipe]')).toHaveCount(10);
+  await expect(page.locator('#crafting-recipes [data-recipe]')).toHaveCount(13);
   await craft(page, 'stick');
   await craft(page, 'plank');
   await craft(page, 'chipped_stone');

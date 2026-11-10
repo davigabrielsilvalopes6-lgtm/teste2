@@ -1,6 +1,6 @@
 # ORIGENS
 
-Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2D. O ponto de entrada atual é `ORIGENS — Survival v0.8.html`, baseado no jogo enviado pelo usuário com ferramentas e mochilas. As versões v0.2 a v0.5 permanecem intactas. O HTML original do ZIP está em `backups/origens-v0.7-recebido.html`. Os gráficos são gerados dentro do HTML; não há sprites ou bibliotecas externas para baixar durante o jogo.
+Protótipo em HTML, CSS e JavaScript, com mundo procedural desenhado em Canvas 2D. O ponto de entrada atual é `ORIGENS — Survival v0.8 Combate.html`, baseado no jogo enviado pelo usuário com ferramentas e mochilas. As versões v0.2 a v0.5 permanecem intactas. O HTML original do ZIP está em `backups/origens-v0.7-recebido.html`. Os gráficos são gerados dentro do HTML; não há sprites ou bibliotecas externas para baixar durante o jogo.
 
 ## Executar o jogo
 
@@ -10,7 +10,7 @@ O HTML continua autônomo. Para desenvolvimento, recomenda-se Node.js 24 LTS. As
 npm start
 ```
 
-O servidor escuta apenas no loopback, na porta 4173. A rota `/` entrega os bytes do HTML v0.8, sem transformações; os seis HTMLs também podem ser acessados pelo nome. Ele não expõe `node_modules`, configurações ou outros arquivos do repositório.
+O servidor escuta apenas no loopback, na porta 4173. A rota `/` entrega os bytes do HTML v0.8 Combate, sem transformações; os sete HTMLs também podem ser acessados pelo nome. Ele não expõe `node_modules`, configurações ou outros arquivos do repositório.
 
 ## Testes Playwright
 
@@ -78,7 +78,7 @@ npm run format:check
 
 O ESLint verifica JavaScript, inclusive os scripts inline dos HTMLs. `eslint.config.mjs` separa navegador, CommonJS/Node e configuração ESM. Os globais do jogo usados em callbacks `page.evaluate` são reconhecidos somente nos testes E2E. Identificadores indefinidos e as demais regras recomendadas são erros; variáveis não utilizadas são avisos. Parâmetros iniciados por `_` e exceções capturadas intencionalmente não geram aviso de variável não usada. Blocos `catch` vazios são permitidos para os fallbacks de armazenamento existentes.
 
-O Prettier usa duas colunas, ponto e vírgula, aspas simples em JavaScript, largura de 100 caracteres e finais de linha LF. HTML, CSS e JavaScript embutidos também são contemplados. `.prettierignore` exclui dependências, relatórios gerados, lockfile gerado e os HTMLs v0.2 a v0.7 históricos e o backup original recebido. A v0.8 continua na verificação, para que divergências não sejam ocultadas.
+O Prettier usa duas colunas, ponto e vírgula, aspas simples em JavaScript, largura de 100 caracteres e finais de linha LF. HTML, CSS e JavaScript embutidos também são contemplados. `.prettierignore` exclui dependências, relatórios gerados, lockfile gerado e os HTMLs v0.2 a v0.7 históricos e o backup original recebido. A v0.8 Combate continua na verificação, para que divergências não sejam ocultadas.
 
 O comando de escrita existe, mas **não foi aplicado à base do jogo nesta tarefa**:
 
@@ -135,3 +135,13 @@ Aproxime-se e pressione **F** para abrir o baú de 27 espaços (9×3). O painel 
 Cada mundo salva baús, conteúdos, cursor e jogador juntos no schema `v:6`, com gerador `gv:2` inalterado. Mundos v2–v5 recebem uma coleção vazia e conservam o progresso, com backup anterior. Dados inconsistentes protegem o registro original contra sobrescrita. O limite para novos posicionamentos é 128 baús por mundo; baús válidos já salvos acima desse limite são mantidos.
 
 A v0.7 completa permanece intacta. Relatório técnico, resultados reais, arquivos alterados e limitações: [RELATORIO-v0.8.md](RELATORIO-v0.8.md). Para repetir: `npm test`, `npm run lint` e `npm run format:check`. No Cloud validado: `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test`.
+
+## Fundação de combate v0.8
+
+O menu **Abrir treinamento (desenvolvimento)** oferece alvos e controles de dano/recuperação. Use um mundo de teste. O jogo normal começa sem alvos e sem armas gratuitas. Para sair do modo de desenvolvimento, use **Sair do treinamento** no menu. O acesso usa um fragmento do endereço e preserva a URL do preview.
+
+Fabrique espada, lança e cajado em `C`, coloque nos nove primeiros espaços e selecione com `1`–`9`. **Mouse** mira; **esquerdo** ataca; **direito** usa o especial; **Espaço** esquiva. A espada corta em arco, a lança estoca e seu especial avança com colisão, e o cajado lança projéteis. Ataques básicos não consomem energia nesta etapa; especiais gastam 20/25 vigor ou 20 energia elemental. A esquiva usa 20 vigor. Não há combate na jangada ou nos painéis.
+
+Vida não regenera. Vigor recupera 12/s após 0,8s; energia elemental, 6/s após 1,5s. O modo de treinamento permite simular dano, derrota segura e recuperação; não acrescenta inimigos ou loot. Vida zero mantém inventário/mundo e pode ser recuperada explicitamente nesse modo.
+
+O save é agora `v:7`, com backup v6 antes da atualização e atributos por mundo. Animações, projéteis e alvos não são gravados. A v0.8 de baús permanece em `ORIGENS — Survival v0.8.html` e `origens-v0.8-baus.html`; o arquivo publicado `origens-v0.8.html` passa a entregar combate. A revisão técnica do pacote é 0.8.1, sem implementar a etapa 0.9. Relatório: [RELATORIO-COMBATE-v0.8.md](RELATORIO-COMBATE-v0.8.md).

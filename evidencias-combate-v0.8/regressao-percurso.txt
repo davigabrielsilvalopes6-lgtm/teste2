@@ -1,0 +1,399 @@
+
+> origens@0.8.1 test
+> npm run test:unit && npm run test:e2e
+
+
+> origens@0.8.1 test:unit
+> node tests/collection.test.cjs && node tests/inventory.test.cjs && node tests/crafting.test.cjs && node tests/tools.test.cjs && node tests/backpack.test.cjs && node tests/storage.test.cjs && node tests/combat.test.cjs
+
+PASS tree canopy resolves to the correct tile, empty and noncollectible tiles do not
+PASS individual damage and monotonic 350ms cooldown
+PASS three tree strikes remove collision and create exactly one 3-wood drop
+PASS stone takes four strikes and ore five; junco and shell stay intact
+PASS out-of-range resource does not take damage or move player
+PASS water, lava and solid intermediate obstacles block extraction
+PASS boat, map, menu and null session prevent hits
+PASS pickup adds exact quantity once and drop is on walkable ground
+PASS automatic pickup is gated while on boat, map or menu
+PASS partial damage survives serialization, reload and final strike
+PASS uncollected drops, removed nodes and collected totals survive repeated loads
+PASS same-seed worlds have independent modified state
+PASS corrupt collection entries are rejected without discarding valid neighbors
+PASS save v3 keeps gv=2 and stores sparse collection without full object or terrain arrays
+PASS storage failure is reported rather than claiming success or throwing
+PASS v2 conversion keeps one exact legacy backup before writing v3
+PASS backup write failure preserves original v2 and live progress for retry
+PASS Esc keeps the live session when saving fails
+PASS invalid drop coordinates, ids, kinds and yields do not consume valid neighboring drops
+PASS stone and ore pickups increment exact totals once through update()
+PASS visibilitychange saves collection and clears held movement keys
+PASS index-write failure reports saved progress without losing collection
+PASS save v2 is accepted by loadWorld and starts with an empty collection
+PASS save v3 through actual loadWorld restores partial damage and drop state
+PASS legacy v1 migration preserves its source and upgrades through v2 to v3
+PASS normal and diagonal walking keep equal speed and respect solid collision
+PASS keyboard M, F3, +/- and Esc preserve controls and menu saving
+PASS generator source is byte-for-byte unchanged from the preserved v0.2
+  generated deterministic 128×128 (attempt 1)
+  generated deterministic 256×256 (attempt 1)
+  generated deterministic 512×512 (attempt 1)
+  generated deterministic 1024×1024 (attempt 1)
+PASS generator remains deterministic and valid at all four supported sizes
+
+29 groups passed.
+PASS [01,02,03,04,05,34] exactly sixteen empty storage slots; central registry and fixed limits
+PASS [06] inserting 1 wood fills stacks without losing units
+PASS [07] inserting 200 wood fills stacks without losing units
+PASS [08] inserting 201 wood fills stacks without losing units
+PASS [09] inserting 450 wood fills stacks without losing units
+PASS [10] three material IDs remain separated and do not alias objects
+PASS [11,12] automatic insertion fills compatible partial stacks before empty slots
+PASS [13,14,34] full inventory returns excess without hidden storage or a seventeenth slot
+PASS [04,05] invalid item insertion and invalid stacks cannot mutate legitimate inventory
+PASS [15,16] left click transfers a whole stack to cursor and to an empty slot
+PASS [17] left click swaps different material stacks without changing totals
+PASS [18,19,20] same-item merging caps at 200 and keeps exact excess on the cursor
+PASS [21] right click splits 20 units using a ceiling half
+PASS [22] right click splits 21 units using a ceiling half
+PASS [23] right click splits 1 units using a ceiling half
+PASS [24] right click deposits exactly one unit and clears an exhausted cursor
+PASS [25,26] right click cannot overfill a stack or mix different materials
+PASS [27] closing returns cursor to partial stacks first and preserves a cursor that cannot fit
+PASS [28,43,44,45] serialization restores exact slot arrangement, selected shortcut and pending cursor
+PASS [30,31,34,35] selecting any hotbar index only changes selection, never material quantities
+PASS [48,49] legacy counters migrate to stacks exactly once and preserve overflow as pending recovery
+PASS [50] partly corrupt inventory preserves valid neighbors and recovers overfull known stacks
+PASS [59,60] deterministic 1500-step split/place/swap/serialize sequence conserves every material
+PASS [02,03] new game session owns exactly sixteen empty slots and no stale cursor
+PASS [36,41] resource wood uses existing hit/drop path and enters storage once
+PASS [37,41] resource stone uses existing hit/drop path and enters storage once
+PASS [38,41] resource ore uses existing hit/drop path and enters storage once
+PASS [39,40,41,57] partial pickup commits only inserted units and the remaining natural drop reloads
+PASS [14,40] full inventory leaves the entire drop on the ground
+PASS [42,52] open inventory blocks walking, extraction and automatic pickup
+PASS [27,28] closing protects an unreturnable cursor and hidden-page save restores it opened
+PASS [43,44,45] real save v4 restores position-specific piles and selected shortcut
+PASS [46,47] same-seed world IDs retain independent inventory state when switched
+PASS [48,49] v3 counter migration is backed up and never re-added on repeated v4 loads
+PASS [48,49] current loader accepts v2 and migrated v1 without changing world identity or erasing legacy data
+PASS [48,50] legacy overflow survives save/load in visible recovery data, not extra slots
+PASS [50] corrupt inventory entries do not discard world identity, valid slots or collected nodes
+PASS [56,57] destroyed collision and uncollected drops survive while partial node damage is retained
+PASS [60] mixed rearrangement/save/load sequence preserves material totals and pending cursor
+PASS [43,28] failed storage write leaves live slots and cursor available for retry
+PASS [51,52,53] inventory gating clears held keys and restores movement only after new input
+PASS [51,56] generator source stays byte-identical to v0.3 and a current 128 world is deterministic
+
+42 inventory/model integration groups passed.
+Acceptance criteria exercised by this suite: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 56, 57, 59, 60
+UI appearance, DOM slot counts, real pointer events and console coverage are validated separately by Playwright.
+PASS [01,02,03] five unique immutable recipes reference the eight known item IDs
+PASS [04,05] invalid quantities, unknown IDs and malformed recipe definitions are rejected in isolation
+PASS [06,18] unknown requests and unavailable registered recipes cannot mutate inventory
+PASS [07,12,13,14,25] recipe_stick consumes only its exact inputs and creates its exact output
+PASS [08,12,13,14,25] recipe_plank consumes only its exact inputs and creates its exact output
+PASS [09,12,13,14,25] recipe_chipped_stone consumes only its exact inputs and creates its exact output
+PASS [10,12,13,14,25] recipe_simple_handle consumes only its exact inputs and creates its exact output
+PASS [11,12,13,14,25] recipe_primitive_component consumes only its exact inputs and creates its exact output
+PASS [15,16,18,28] missing all or some ingredients rejects without changing slots or object identities
+PASS [17,13] distributed ingredients are consumed from slot 15 toward slot 0
+PASS [18,20] simulation is detached and execution commits one cloned slot array atomically
+PASS [21,22,23,24] 199 plus two fills the first stack and spills exactly one into a real empty slot
+PASS [22,24,27,28,29,30] 199 plus two is refused when the unconsumed ingredient leaves all sixteen slots occupied
+PASS [26,29] a full inventory succeeds when consuming the ingredient frees the slot needed by its output
+PASS [31,32,13,14] 1x and 5x multiply both ingredients and the two-unit result
+PASS [33,34,35,18] a rejected batch is never applied partially for missing inputs or insufficient capacity
+PASS [36] maximum handles nonmonotonic capacity: one craft fails but five crafts free an input slot
+PASS [36] maximum respects all inputs, output capacity and the bounded 3200-unit inventory
+PASS [18,35] invalid or enormous requested quantities reject without unbounded loops or inventory mutation
+PASS [15,18,45] cursor and migration recovery are not ingredient sources and held items are preserved
+PASS [17,23,28,29,35,42,67] 1500 deterministic crafting, split, merge, move and reload steps match an independent oracle
+PASS [38,39,41] repeated crafting dispatch reads current inventory and cannot spend one wood twice
+PASS [38,39] a reentrant crafting dispatch is rejected while the outer transaction is committing
+PASS [18,38,41] unexpected precommit and presentation failures release the lock without duplicating a transaction
+PASS [40,41] a formerly valid recipe is rechecked against inventory changed after selection
+PASS [43,44,45] crafting opens safely, but refuses an occupied cursor without discarding or relocating it
+PASS [47,48,59] open crafting gates movement and extraction; closing requires fresh controls to move again
+PASS [49,50] successful crafting requests fresh inventory and crafting renders without closing the panel
+PASS [51,52,53,60,68] collecting a real tree, crafting sticks and reloading preserves the exact transformation
+PASS [07,08,09,10,11,51,52,53] the complete provisional production chain survives a real save and reload
+PASS [54,55] two world identities with the same seed retain independent crafted products
+PASS [56] a v0.4 save preserves all sixteen positions, cursor, hotbar selection and original quantities
+PASS [57,51,52,53] v0.3 migration happens once even after crafting and repeated current-schema reloads
+PASS [56,58] the first v0.5 write preserves the original valid v0.4 save in a stable backup
+PASS [56,58] a partially recoverable malformed v4 inventory cannot overwrite its intact original storage record
+PASS [58,51,52,53] failed persistence preserves a completed in-memory craft and reports unsaved changes until retry
+PASS [60] existing wood extraction and pickup still work after opening and closing crafting
+PASS [61] existing stone extraction and pickup still work after opening and closing crafting
+PASS [62] existing ore extraction and pickup still work after opening and closing crafting
+PASS [63,68] crafting neither consumes an uncollected drop nor removes a full-inventory drop on reload
+PASS [66,67] nine existing numeric shortcuts keep referencing the original sixteen storage slots
+PASS [69] crafting leaves the procedural generator unchanged and the same seed yields identical world arrays
+
+42 crafting/model integration groups passed.
+v0.5 acceptance criteria exercised: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 38, 39, 40, 41, 42, 43, 44, 45, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 66, 67, 68, 69
+Actual DOM details, real browser input, screenshots and browser console are checked separately by Playwright.
+PASS [1,2,3,4,5,6,10,92,94] two unique immutable nonstackable tool entries; initial 16 slots; material limit 200
+PASS [7,8,9,18,95] identical tools occupy separate slots; right click and merge preserve whole units
+PASS [11,16,17] stone_axe consumes exact ingredients, preserves other items and creates one individual tool
+PASS [13] stone_axe refuses missing simple_handle without touching any slot
+PASS [14] stone_axe refuses missing chipped_stone without touching any slot
+PASS [15] stone_axe refuses missing stick without touching any slot
+PASS [12,16,17] stone_pickaxe consumes exact ingredients, preserves other items and creates one individual tool
+PASS [13] stone_pickaxe refuses missing simple_handle without touching any slot
+PASS [14] stone_pickaxe refuses missing chipped_stone without touching any slot
+PASS [15] stone_pickaxe refuses missing stick without touching any slot
+PASS [18,19] distributed input fragments produce two axes in separate slots
+PASS [20,21] full inventory rejects without losses unless exact consumption frees an output slot
+PASS [22,23] five-tool batch needs five individual output slots after simulated consumption
+PASS [22,23] tools remain nonstackable and crafting atomic after user backpack expansion to 24 or 32
+PASS [24] rapid session craft dispatch cannot reuse inputs from a previous click
+PASS [25,26,27,28,29,30,34,35,93] real keyboard handler derives tools from first nine existing slots and ignores typing
+PASS [31,32,33] moving tools out of the selected hotbar slot immediately unequips; cursor never equips
+PASS [37,41,89] wood: bare hands needs 3 hits, yields exactly 3
+PASS [38,41,89] wood: stone_axe needs 2 hits, yields exactly 3
+PASS [39,41,89] wood: stone_pickaxe needs 3 hits, yields exactly 3
+PASS [42,46,90] stone: bare hands needs 4 hits, yields exactly 2
+PASS [43,46,90] stone: stone_pickaxe needs 2 hits, yields exactly 2
+PASS [44,46,90] stone: stone_axe needs 4 hits, yields exactly 2
+PASS [47,50,91] ore: bare hands needs 5 hits, yields exactly 1
+PASS [48,50,91] ore: stone_pickaxe needs 3 hits, yields exactly 1
+PASS [49,50,91] ore: stone_axe needs 5 hits, yields exactly 1
+PASS [30] a selected material grants no bonus and is never consumed on a collection click
+PASS [40,45,55,56] mixed tool selection preserves partial progress; switching never resets cooldown or applies a hit
+PASS [52,53,54] 80px reach and 350ms cooldown reject premature/out of reach hits without spending progress
+PASS [57,58,59,60] inventory, crafting, map, menu and raft gates reject collection and do not start swings
+PASS [52,53,63] path obstruction cannot be bypassed by a tool; destroyed objects release collision once
+PASS [61,62,64] actual canvas click conversion respects all zoom levels and two camera positions, hits only target
+PASS [65,67,68,69,70] stone_axe fabrication, selected slot and moved position survive actual save/reload
+PASS [66,67,68,69,70] stone_pickaxe fabrication, selected slot and moved position survive actual save/reload
+PASS [71,72,73,74,79] partial hand/tool progress, removed resources and single drops survive repeated reload
+PASS [51,79,98,99] mineral drops persist once; partial pickup into a nearly full inventory preserves remainder
+PASS [75,76,84,97] same-seed worlds retain separate tools, inventories and resource damage
+PASS [77,78,80] old v0.5 schema4 items and exploration migrate without creating tools or losing sparse damage
+PASS [78,80] known excess tools and occupied cursor recover once; unknown ID is ignored without discarding neighbours
+PASS [32,69,70] tool held on cursor survives pagehide save and closes back into a real slot without duplication
+PASS [65,66,97] failed storage preserves crafted tools in memory, flags unsaved state, and retries safely
+PASS [7,8,9,34,35,69,70,95] 1200 deterministic inventory moves/splits/reloads conserve tools at every backpack capacity
+PASS [81,82] WASD movement and camera following continue after selecting and using tools
+PASS [85,86,87] tools do not alter real raft boarding, sea navigation or safe disembarking
+PASS [83,84,96] generator bytes and old five recipe transformations remain intact
+
+45 tools/model integration groups passed.
+v0.6 numbered criteria exercised in VM: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99
+Initial inventory has 16 slots; supplied user v0.7 backpacks expand it to 24/32.
+Actual DOM highlighting, canvas appearance, browser event delivery and console are covered by Playwright.
+PASS initial16, rustic24 and reinforced32 capacities are independently configured
+PASS both backpack recipes use existing material IDs and explicit progression requirements
+PASS recipe_rustic_backpack consumes exact ingredients and produces a bag without expanding automatically
+PASS recipe_rustic_backpack rejects each missing ingredient without touching other slots or metadata
+PASS recipe_reinforced_backpack consumes exact ingredients and produces a bag without expanding automatically
+PASS recipe_reinforced_backpack rejects each missing ingredient without touching other slots or metadata
+PASS reinforced crafting requires rustic capacity; unlocked backpack recipes cannot be repeated
+PASS crafting five rustic bags uses five distinct slots and leaves capacity unchanged
+PASS full-inventory crafting fails atomically until consumption frees a real result slot
+PASS insufficient space rejects the entire five-bag batch
+PASS backpack use requires the next tier and consumes exactly one stored bag
+PASS full inventory can expand and all existing positions, cursor and hotbar selection survive
+PASS a bag in the cursor is not consumed or usable as an equipment slot
+PASS invalid indices and materials fail without consuming items
+PASS expanded slot31 participates in crafting before linked hotbar ingredients
+PASS expanded capacity accepts materials through the final slot and retains excess
+PASS save round trips retain capacity, final slot, cursor, pending items and selection at every tier
+PASS old16-slot saves without capacity or newly added pending IDs remain valid
+PASS legacy resource counters migrate once without inventing backpacks or tools
+PASS unknown slot or pending IDs protect the original while valid neighbors recover
+PASS occupied positions beyond declared capacity recover without silently validating bad saves
+PASS separately restored worlds share neither capacity nor item objects
+PASS 9000 actual operations preserve an independent material ledger across all capacities
+23 backpack regression groups passed
+PASS [1,2,3,4,6,7,13,65,67,68] storage catalog, configured 27 slots and linked nine-slot bar do not expand player inventory
+PASS [5,6,7,10,11] single and five-batch crafts consume exact existing ingredients and create separate items
+PASS [8,9,10,11] missing ingredients or insufficient batch capacity roll back while released slots permit crafting
+PASS [17,18,29,30,31,39,40,67,68] placement consumes exactly one item, adds one independent record and physical collision
+PASS [19,20,21,22,23,24,25,26,30] all invalid terrain, objects, character, bounds and range reject without consuming chest
+PASS [17,24,26,30,36] spawn, drops, obstacle line and narrow-passage connectivity prevent unsafe placement
+PASS [27,28] boat, map, inventory, crafting and menu gate placing without consumption
+PASS [17,18,29,30] rapid placement and slot changes obey the live item and single accepted action
+PASS [31,32,33,34,35,36,37] F opens only the deterministic nearest accessible chest and never the previous distant chest
+PASS [31,32,33] chest base blocks actual walking while an adjacent legal interaction point remains reachable
+PASS [41,42,60] wood manually moves in both directions using the single player cursor
+PASS [43,42,60] stone manually moves in both directions using the single player cursor
+PASS [44,42,60] ore manually moves in both directions using the single player cursor
+PASS [45,42,60] stone_axe manually moves in both directions using the single player cursor
+PASS [46,42,60] stone_pickaxe manually moves in both directions using the single player cursor
+PASS [47,42,60] rustic_backpack manually moves in both directions using the single player cursor
+PASS [47,42,60] reinforced_backpack manually moves in both directions using the single player cursor
+PASS [47,42,60] wooden_chest manually moves in both directions using the single player cursor
+PASS [48,49,50,51,52,57,60] right splitting, one-unit placement, capped merge and swap preserve each item exactly
+PASS [53,54,55,56,57,60,64] Shift transfer fills partial piles before empty slots and preserves exact excess at the source
+PASS [52,56,59,60] a full player inventory refuses a nonstackable withdrawal and rapid repeats cannot duplicate
+PASS [57,58,60,81] closing returns the held chest pile to its original slot without creating a second cursor
+PASS [57,58,60,81] a valid split-then-swap can leave no return space; close preserves the protected cursor across reload
+PASS [61,64,65,66,67,68] capacity 16 supports every unlocked slot without equipping stored tools or backpacks
+PASS [62,64,65,66,67,68] capacity 24 supports every unlocked slot without equipping stored tools or backpacks
+PASS [63,64,65,66,67,68] capacity 32 supports every unlocked slot without equipping stored tools or backpacks
+PASS [69,70,71,72,73,74,75,79,80,84] multiple placed records, exact slot order and stable IDs persist in one world snapshot
+PASS [69,75,79,84] an empty chest remains a physical persistent record and opening never replaces its slots
+PASS [76,77] same-seed world IDs keep distinct chest IDs, contents and backpack capacities
+PASS [78,114] v0.7 schema5 migration preserves expanded inventory, tool selection, exploration and collection without free chests
+PASS [80,81,82] storage-write failure retains both sides in memory and the previous complete snapshot for a retry
+PASS [83] every malformed storage record protects its original snapshot rather than overwriting a silently emptied chest
+PASS [83] duplicate live references across player and chest are rejected before any partial transfer
+PASS [85,86,87,88,92,93,94] recollecting an empty chest removes both indexes/collision and creates one reusable fresh item
+PASS [89,90,91,92] full chest, occupied cursor or full player inventory prevents unsafe removal
+PASS [29,30,69] the per-world limit rejects new placements and never truncates already saved records
+PASS [41,42,55,56,57,60] transfer plans are detached and invalid operations cannot mutate either container
+PASS [14,15,16,18,95,96,97] preview target conversion follows logical camera/zoom and never consumes items or writes storage
+PASS [28,34,95,109,110,111] storage keyboard routing pauses movement and prevents inventory/crafting/map/boat conflicts
+PASS [12,100,106,107,108] generator and nine previous recipe transformations still execute in the current HTML
+PASS [95,96,98,101,102,103,104,105,112,113] old movement, tool extraction, persistent damage/drops and raft remain operational with placed storage
+PASS [40,48,49,50,51,52,53,54,55,57,58,59,60,61,62,63,64,65,66,67,68,80] 5400 mixed operations conserve an independent ledger across three chests, cursor, pending recovery and all capacities
+
+42 storage/model integration groups passed.
+v0.8 numbered criteria exercised in VM: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114
+Preview coordinates are tested as state; actual pixels, 27 DOM slots, layout and console are Playwright checks.
+PASS [1,2,3,10,12] fresh finite attributes and invalid saves fail closed
+PASS [7,8,9,10] regeneration is independent at 4, 20, 60 and 120 updates per second
+PASS [9,48,56,57] menus, hidden tabs and raft pause actions and recovery without catching up
+PASS [13,14,15,16,17,18,19,20,21] three real atomic recipes and individual weapon slots
+PASS [22,23,24,35] equipment derives from hotbar; cursor, materials and outside slots never attack
+PASS [25,26,28,29,31,34,36,37,38,70,71,73,74] primitive_sword hits once in its forward area and cooldown survives swapping
+PASS [25,26,28,29,31,34,36,37,38,70,71,73,74] primitive_spear hits once in its forward area and cooldown survives swapping
+PASS [32,33,37] logical aim uses camera and zoom, narrow spear excludes side target
+PASS [39,40,41,42,43,44,45,46] special resources charge once, shared cooldown and insufficient resources reject atomically
+PASS [27,30,59,60,61,62,63,65,66,67,68,72] staff projectile resolves exactly once and expires, malformed projectiles are removed
+PASS [47,53,54,55,64] swept movement and projectiles collide with solid rocks, water and world bounds
+PASS [49,50,51,52,58] dodge spends 20, terminates, respects cooldown and never duplicates movement
+PASS [4,79,81,82,83,84,85,86] received damage has source-specific immunity, safe defeat and dev recovery without item changes
+PASS [69,75,76,77,78] training targets lose only actual damage, never go negative or produce loot
+PASS [87,88,89,90,91,92,97,98] atomic save restores attributes, slots and cooldown remainders but no transient effects
+PASS [93,94,95,96,119] old schema6 world migrates without free weapons or changes to collection and storage
+PASS [61,64,67] projectile displacement is 220px per second at different frame rates
+PASS [35,38,97] switching during a pending strike uses the starting weapon once and rendering cannot damage
+
+18 combat groups passed. Criteria: 1, 2, 3, 4, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 119
+
+> origens@0.8.1 test:e2e
+> playwright test
+
+
+Running 69 tests using 2 workers
+
+(node:452732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:452731) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [chromium] › tests/e2e/combat.spec.js:57:1 › normal world exposes actual health bars and receives no free weapons or training targets (1.9s)
+  ✓   3 [chromium] › tests/e2e/combat.spec.js:145:1 › staff and spear recipes, projectile hits and special costs use real mouse controls (7.7s)
+  ✓   4 [chromium] › tests/e2e/combat.spec.js:192:1 › Space dodge spends vigor and returns controls; recovery follows time instead of draw count (3.3s)
+  ✓   5 [chromium] › tests/e2e/combat.spec.js:212:1 › simulated damage, immunity, defeat and recovery update actual HUD without changing inventory (2.1s)
+  ✓   1 [chromium] › tests/e2e/combat.spec.js:76:1 › natural sword: gather, craft, equip, aim, hit, special, save and reload without injecting materials (15.9s)
+  ✓   6 [chromium] › tests/e2e/combat.spec.js:235:1 › inventory, crafting, map, cursor and raft reject mouse attacks without consumption (1.7s)
+  ✓   7 [chromium] › tests/e2e/combat.spec.js:269:3 › weapon pixels and real progress bars remain visible at 1280×800 (2.6s)
+  ✓   8 [chromium] › tests/e2e/combat.spec.js:269:3 › weapon pixels and real progress bars remain visible at 640×480 (2.5s)
+  ✓   9 [chromium] › tests/e2e/combat.spec.js:295:1 › real old chest save migrates with its contents and receives no weapons (1.1s)
+  ✓  11 [chromium] › tests/e2e/crafting.spec.js:216:1 › [07-14,25,50-53,70] scenario 2: the complete five-recipe chain conserves materials and survives reload (2.5s)
+  ✓  10 [chromium] › tests/e2e/crafting.spec.js:189:1 › [07,13-14,31,43,49,51-53,60,68,70] scenario 1: collect a real tree, craft, save and restore exact slots (4.1s)
+  ✓  12 [chromium] › tests/e2e/crafting.spec.js:243:1 › [15-19,33,40-41,50,70] missing and freshly changed ingredients update selected recipes and reject stale requests (1.8s)
+  ✓  13 [chromium] › tests/e2e/crafting.spec.js:290:1 › [20-30,34-35,67,70] scenario 3: full inventory rolls back completely, then consumed slots accept output (2.4s)
+  ✓  14 [chromium] › tests/e2e/crafting.spec.js:337:1 › [31-39,41-42,70] once, five, maximum and consecutive click events use current quantities atomically (2.3s)
+  ✓  15 [chromium] › tests/e2e/crafting.spec.js:377:1 › [08,54-55,60,68-70] scenario 4: same-seed worlds retain independent crafted items and removals (4.2s)
+  ✓  16 [chromium] › tests/e2e/crafting.spec.js:409:1 › [13-14,32,42,51-53,60-61,70] scenario 5: collect, craft repeatedly, split, move, merge, batch and reload (6.3s)
+  ✓  17 [chromium] › tests/e2e/crafting.spec.js:447:1 › [43-48,59,64-65,70] crafting gates movement, world hits, map and boat, then restores keyboard controls (2.6s)
+  ✓  18 [chromium] › tests/e2e/crafting.spec.js:490:1 › [44-45,70] a cursor stack blocks crafting without losing or consuming the held items (1.7s)
+  ✓  19 [chromium] › tests/e2e/crafting.spec.js:512:1 › [56-57,70] v0.4 inventory records and v0.3 counters load, craft and migrate only once (3.4s)
+  ✓  20 [chromium] › tests/e2e/crafting.spec.js:570:1 › [51-53,58,70] a real Storage write failure is visible, preserves the previous save and can recover (2.8s)
+  ✓  21 [chromium] › tests/e2e/crafting.spec.js:609:1 › [19,37,43,50,70] crafting remains usable at 640×480 and exposes an inspectable visual capture (1.8s)
+  ✓  22 [chromium] › tests/e2e/inventory.spec.js:141:1 › [01-05,29-31,34-35] exactly 16 storage slots, a 4×4 grid and nine live shortcuts (1.8s)
+  ✓  24 [chromium] › tests/e2e/inventory.spec.js:227:1 › [29-35] moving slot one to slot twelve immediately updates the same hotbar data (1.6s)
+  ✓  25 [chromium] › tests/e2e/inventory.spec.js:253:1 › [27-28,43-45] page reload while carrying a stack restores it once and returns it safely on close (1.6s)
+  ✓  23 [chromium] › tests/e2e/inventory.spec.js:175:1 › [15-26,59-60] mouse splitting, distribution, merge and swap conserve materials through reload (4.4s)
+  ✓  27 [chromium] › tests/e2e/inventory.spec.js:326:1 › [13-14,39-42,57] partial pickup leaves the exact remainder and UI blocks pickup and hits (3.3s)
+  ✓  28 [chromium] › tests/e2e/inventory.spec.js:366:1 › [43-49] same-seed worlds stay independent and legacy v3 counters migrate exactly once (2.0s)
+  ✓  29 [chromium] › tests/e2e/inventory.spec.js:413:1 › [48-49,60] visible pending recovery fills only available space and remains idempotent after reload (2.2s)
+  ✓  26 [chromium] › tests/e2e/inventory.spec.js:282:1 › [36-38,41,56-57] actual tree, stone and ore extraction feeds slots and survives save/load (8.0s)
+  ✓  31 [chromium] › tests/e2e/inventory.spec.js:545:1 › [15-16,53,58] slots remain clickable after zoom/resize and the held item does not intercept clicks (2.0s)
+  ✓  30 [chromium] › tests/e2e/inventory.spec.js:483:1 › [51-55] inventory gates held keys, map and raft without leaving controls stuck (2.9s)
+  ✓  32 [chromium] › tests/e2e/origens.spec.js:3:1 › loads the game document, Canvas and functioning world-creation menu (1.1s)
+  ✓  33 [chromium] › tests/e2e/origens.spec.js:19:1 › generates the map and renders terrain, player and minimap pixels (953ms)
+  ✓  34 [chromium] › tests/e2e/origens.spec.js:64:1 › loads the essential inline Canvas artwork with nontransparent content (570ms)
+  ✓  36 [chromium] › tests/e2e/origens.spec.js:97:1 › full map opens, draws, zooms and drags while movement is paused (1.7s)
+  ✓  35 [chromium] › tests/e2e/origens.spec.js:83:1 › WASD changes player position through actual keyboard input (1.8s)
+  ✓  37 [chromium] › tests/e2e/origens.spec.js:131:1 › HUD reveal, zoom and debug controls leave the interface usable (1.3s)
+  ✓  38 [chromium] › tests/e2e/origens.spec.js:153:1 › reload preserves the saved world and permits resuming through the menu (1.8s)
+  -  40 [chromium] › tests/e2e/origens.spec.js:183:6 › elemental-origin choice (not implemented in the current game)
+  ✓  39 [chromium] › tests/e2e/origens.spec.js:174:1 › reload before world creation returns to a working initial menu (1.0s)
+  ✓  41 [chromium] › tests/e2e/presentation.spec.js:36:3 › expanded inventory stays legible and clickable at 1280×800 (1.7s)
+  ✓  42 [chromium] › tests/e2e/presentation.spec.js:36:3 › expanded inventory stays legible and clickable at 640×480 (1.7s)
+  ✓  43 [chromium] › tests/e2e/presentation.spec.js:36:3 › expanded inventory stays legible and clickable at 390×844 (1.6s)
+  ✓  45 [chromium] › tests/e2e/presentation.spec.js:161:1 › tool drawing restores the Canvas transform and styles (917ms)
+  ✓  44 [chromium] › tests/e2e/presentation.spec.js:83:1 › mouse aim changes held-tool pixels without moving or collecting, including camera and zoom changes (3.0s)
+  ✓  46 [chromium] › tests/e2e/presentation.spec.js:186:1 › switching from an expanded empty world refreshes the capacity shown in the detail card (1.8s)
+  ✓  48 [chromium] › tests/e2e/storage.spec.js:462:1 › [0.8 39-47,53-54,69-77,84] three placed chests keep distinct contents, IDs and same-seed world ownership (6.9s)
+  ✓  49 [chromium] › tests/e2e/storage.spec.js:515:1 › [0.8 45-52,57,60,66-68] one cursor moves, splits, swaps and caps every item category without equipping stored tools (3.6s)
+  ✓  50 [chromium] › tests/e2e/storage.spec.js:571:1 › [0.8 51-57,59-60,64] quick transfer fills partial stacks first, leaves excess at source, and refuses full destinations (2.3s)
+  ✓  51 [chromium] › tests/e2e/storage.spec.js:602:1 › [0.8 57-58,69-75,80-81] unexpected reload preserves a chest-origin cursor once and close returns it safely (2.8s)
+  ✓  52 [chromium] › tests/e2e/storage.spec.js:630:1 › [0.8 85-94] only empty chests can be recovered; removal clears collision, persists and never reuses identity (3.6s)
+  ✓  53 [chromium] › tests/e2e/storage.spec.js:670:1 › [0.8 28,34,38,95,109-110,115] storage captures controls and UI clicks without moving, sailing or striking behind the panel (2.1s)
+  ✓  54 [chromium] › tests/e2e/storage.spec.js:717:1 › [0.8 14-16,31,96-97] placement preview follows actual mouse coordinates and zoom without consuming or saving (3.3s)
+  ✓  55 [chromium] › tests/e2e/storage.spec.js:756:1 › [0.8 21-24,26,29-32,35] rejected primary clicks preserve the item and resources, while a placed chest physically blocks walking (2.8s)
+  ✓  56 [chromium] › tests/e2e/storage.spec.js:854:3 › [0.8 38,61-65,67-68; layout] all unlocked storage slots remain usable at 1280×800 (3.0s)
+  ✓  57 [chromium] › tests/e2e/storage.spec.js:854:3 › [0.8 38,61-65,67-68; layout] all unlocked storage slots remain usable at 640×480 (2.7s)
+  ✓  58 [chromium] › tests/e2e/storage.spec.js:854:3 › [0.8 38,61-65,67-68; layout] all unlocked storage slots remain usable at 390×844 (2.5s)
+  ✘  47 [chromium] › tests/e2e/storage.spec.js:422:1 › [0.8 01,04-06,13-18,31,34,38,41-44,48,53-54,69-75,80,84] first chest: natural resources, real walking, sea travel, crafting, storage and reload (34.6s)
+(node:455177) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  59 [chromium] › tests/e2e/storage.spec.js:911:1 › [0.8 69-73,80,82] real storage write failure reports unsaved transfer and recovery saves both containers together (3.8s)
+  ✓  60 [chromium] › tests/e2e/storage.spec.js:955:1 › [0.8 78,114] actual v0.7 expanded inventory migrates without free chests, lost tools or changed exploration (1.8s)
+  ✓  61 [chromium] › tests/e2e/storage.spec.js:1000:1 › [0.8 83] malformed filled storage retains the exact original save and reports protection (2.7s)
+  ✓  63 [chromium] › tests/e2e/tools.spec.js:262:1 › [0.6 12,25-29,31-36,68-70] craft both tools, move with mouse and derive equipment from the selected slot (2.7s)
+  ✓  64 [chromium] › tests/e2e/tools.spec.js:299:1 › [0.6 5,7-9,18,20-23] atomic batch rejects three free slots for five tools, then uses five separate slots (1.6s)
+  ✓  65 [chromium] › tests/e2e/tools.spec.js:347:1 › [0.6 45,54-59,71-74,79] tool switches keep partial damage and cooldown; UI clicks never hit (4.7s)
+  ✓  66 [chromium] › tests/e2e/tools.spec.js:398:1 › [0.6 43,46,48,50-51,66] crafted pickaxe mines actual rock in two clicks and ore in three, saves exact drops (3.8s)
+  ✓  62 [chromium] › tests/e2e/tools.spec.js:225:1 › [0.6 11,25-26,37-38,41,65,67-70,73-74,79,89-90] first axe from natural resources, real walking and UI only (18.1s)
+  ✓  67 [chromium] › tests/e2e/tools.spec.js:437:1 › [0.6 29-30; Canvas] tools render distinguishable pixels at every zoom and disappear for an empty or material slot (8.5s)
+  ✓  68 [chromium] › tests/e2e/tools.spec.js:474:1 › [0.6 75-76; v0.7] same-seed worlds retain independent tools and 16/24/32 backpack capacities (4.1s)
+  ✓  69 [chromium] › tests/e2e/tools.spec.js:532:1 › [0.6 60,81,85-87] selected tool preserves real embark, sea movement and disembark controls (1.1s)
+
+
+  1) [chromium] › tests/e2e/storage.spec.js:422:1 › [0.8 01,04-06,13-18,31,34,38,41-44,48,53-54,69-75,80,84] first chest: natural resources, real walking, sea travel, crafting, storage and reload
+
+    Error: Natural sea route reaches px=2256 by keyboard
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+       at navigation.js:31
+
+      29 |         { coordinate, target, sign, timeout },
+      30 |       );
+    > 31 |       expect(reached, `Natural sea route reaches ${coordinate}=${target} by keyboard`).toBe(true);
+         |                                                                                        ^
+      32 |     } finally {
+      33 |       await page.keyboard.up(key);
+      34 |     }
+        at moveTo (/workspace/teste2/tests/e2e/navigation.js:31:88)
+        at gatherNaturalOre (/workspace/teste2/tests/e2e/navigation.js:203:41)
+        at /workspace/teste2/tests/e2e/storage.spec.js:432:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/storage--0-8-01-04-06-13-1-6be28-crafting-storage-and-reload-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/storage--0-8-01-04-06-13-1-6be28-crafting-storage-and-reload-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/storage--0-8-01-04-06-13-1-6be28-crafting-storage-and-reload-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/storage--0-8-01-04-06-13-1-6be28-crafting-storage-and-reload-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/e2e/storage.spec.js:422:1 › [0.8 01,04-06,13-18,31,34,38,41-44,48,53-54,69-75,80,84] first chest: natural resources, real walking, sea travel, crafting, storage and reload
+  1 skipped
+  67 passed (2.2m)
