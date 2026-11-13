@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1219">
+<title>ORIGENS — Survival v0.9 · Fauna Elemental</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b1219}iframe{border:0;display:block;width:100vw;height:100dvh}#status{position:fixed;right:8px;bottom:8px;padding:4px 7px;background:#14251fcc;color:#d1e8dc;font:11px monospace;pointer-events:none}</style>
+</head>
+<body>
+<iframe id="origens" title="ORIGENS v0.9" src="./ORIGENS%20%E2%80%94%20Survival%20v0.8.1.html" allow="fullscreen"></iframe>
+<div id="status" role="status">ORIGENS 0.9 · carregando fauna</div>
+<script>
+'use strict';
+const iframe=document.getElementById('origens'),status=document.getElementById('status');
+iframe.addEventListener('load',()=>{
+  try {
+    const doc=iframe.contentDocument;
+    if(!doc||!iframe.contentWindow)throw new Error('Abrir pelo servidor local do projeto');
+    const script=doc.createElement('script');
+    script.src='./assets/mobs/mobs-v09.js';
+    script.onload=()=>{if(iframe.contentWindow.ORIGENS_MOBS_V09){status.textContent='ORIGENS 0.9 · Fauna elemental ativa';setTimeout(()=>{status.hidden=true},4500)}else status.textContent='Fauna não inicializada: consulte o console';};
+    script.onerror=()=>{status.textContent='Erro ao carregar fauna: use npm start e abra /ORIGENS%20%E2%80%94%20Survival%20v0.9.html';};
+    doc.body.appendChild(script);
+  }catch(error){status.textContent='Falha: '+error.message;}
+});
+</script>
+</body>
+</html>
