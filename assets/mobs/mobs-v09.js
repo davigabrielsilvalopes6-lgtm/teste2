@@ -61,7 +61,10 @@
       sprites[species]={image:picture,ready:false};
       picture.onload=()=>{const spec=sprites[species];spec.ready=picture.naturalWidth>=sp.frame && picture.naturalHeight>=sp.frame*4;};
       picture.onerror=()=>{sprites[species].ready=false;};
-      picture.src='assets/mobs/'+sp.asset;
+      // Sem PNGs finais validados no repositório: não solicitar URLs inexistentes (404).
+      // Adicionar nomes a window.ORIGENS_MOB_SHEET_PATHS após auditar/exportar os sprites.
+      if(Array.isArray(window.ORIGENS_MOB_SHEET_PATHS)&&window.ORIGENS_MOB_SHEET_PATHS.includes(sp.asset))
+        picture.src='assets/mobs/'+sp.asset;
     }
     game.mob09={version:1,active:0,defeated:0,projectileCount:0};
   }
