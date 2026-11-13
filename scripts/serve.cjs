@@ -43,7 +43,7 @@ const server = http.createServer((request, response) => {
   // Keep the same URL and origin on reload; serve the original bytes unchanged.
   const filename = pathname === '/' ? entry : pathname.slice(1);
   const isMobScript = filename === 'assets/mobs/mobs-v09.js';
-  const isMobPng = /^assets\\/mobs\\/(fire_salamander|rock_boar|wind_spirit|river_serpent)\\/[a-z0-9_-]+\\.png$/.test(filename);
+  const isMobPng = /^assets\/mobs\/(fire_salamander|rock_boar|wind_spirit|river_serpent)\/[a-z0-9_-]+\.png$/.test(filename);
   if (!documents.has(filename) && !isMobScript && !isMobPng) {
     response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     response.end('Não encontrado');
