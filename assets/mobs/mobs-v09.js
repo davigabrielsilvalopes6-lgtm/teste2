@@ -208,7 +208,7 @@
     projectiles=result;
     effects=effects.filter(e=>clock-e.at<.35);
   }
-  function update(dt){
+  function updateMobs(dt){
     if(!active()||!Number.isFinite(dt)||dt<=0)return;
     dt=Math.min(dt,.05);clock+=dt;
     spawnTime+=dt;
@@ -293,10 +293,9 @@
   }
   const originalStart=start,originalUpdate=update,originalDrawCombatTarget=drawCombatTarget,originalDrawCombatWorld=drawCombatWorld;
   start=function(w,sv){originalStart(w,sv);init(G);};
-  update=function(dt,combatDt=dt){originalUpdate(dt,combatDt);updateMobs09(dt);};
-  function updateMobs09(dt){api.update(dt);}
+  update=function(dt,combatDt=dt){originalUpdate(dt,combatDt);updateMobs(dt);};
   drawCombatTarget=function(target){if(target.mobSpecies){api.draw(target);return;}originalDrawCombatTarget(target);};
   drawCombatWorld=function(){originalDrawCombatWorld();drawProjectiles();};
-  const api={definitions:SPECIES,plannedDrops:DROPS_V010,init,update,draw,spawn,ownerElement};
+  const api={definitions:SPECIES,plannedDrops:DROPS_V010,init,update:updateMobs,draw,spawn,ownerElement};
   window.ORIGENS_MOBS_V09=api;
 })();
