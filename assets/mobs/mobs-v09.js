@@ -2,10 +2,10 @@
 /* ORIGENS 0.9.1 — sprites aprovados pelo usuário e animações por estado. Mantém saves v8. */
 (() => {
   const SPECIES = Object.freeze({
-    salamander: {name:'Salamandra Ígnea',element:3,hp:55,speed:55,detect:190,range:150,damage:12,near:8,attack:'fire',cooldown:2.5,radius:13,colour:'#b94b34',water:false,asset:'fire_salamander/salamandra_ignea_idle.png',frame:64,frames:4},
-    boar: {name:'Javali Rochoso',element:2,hp:110,speed:45,detect:175,range:76,damage:18,near:10,attack:'charge',cooldown:4,radius:18,colour:'#866046',water:false,asset:'rock_boar/javali_rochoso_idle.png',frame:80,frames:4},
-    spirit: {name:'Espírito do Vento',element:4,hp:45,speed:92,detect:215,range:175,damage:9,near:6,attack:'wind',cooldown:2,radius:12,colour:'#9fd4dd',water:false,asset:'wind_spirit/espirito_vento_idle.png',frame:64,frames:6},
-    serpent: {name:'Serpente dos Rios',element:1,hp:65,speed:72,detect:205,range:165,damage:10,near:8,attack:'water',cooldown:2.2,radius:13,colour:'#449c9f',water:true,asset:'river_serpent/serpente_rios_idle.png',frame:80,frames:4}
+    salamander: {name:'Salamandra Ígnea',element:3,hp:55,speed:55,detect:190,range:150,damage:12,near:8,attack:'fire',cooldown:2.5,radius:13,colour:'#b94b34',water:false,asset:'fire_salamander/salamandra_ignea_idle.png',frame:64,frames:4,drawSize:38},
+    boar: {name:'Javali Rochoso',element:2,hp:110,speed:45,detect:175,range:76,damage:18,near:10,attack:'charge',cooldown:4,radius:18,colour:'#866046',water:false,asset:'rock_boar/javali_rochoso_idle.png',frame:80,frames:4,drawSize:50},
+    spirit: {name:'Espírito do Vento',element:4,hp:45,speed:92,detect:215,range:175,damage:9,near:6,attack:'wind',cooldown:2,radius:12,colour:'#9fd4dd',water:false,asset:'wind_spirit/espirito_vento_idle.png',frame:64,frames:6,drawSize:38},
+    serpent: {name:'Serpente dos Rios',element:1,hp:65,speed:72,detect:205,range:165,damage:10,near:8,attack:'water',cooldown:2.2,radius:13,colour:'#449c9f',water:true,asset:'river_serpent/serpente_rios_idle.png',frame:80,frames:4,drawSize:44}
   });
   const DROPS_V010 = Object.freeze({
     salamander:[['escama_ignea',1,3,1],['carne_salamandra',1,1,.35],['glandula_brasa',1,1,.08]],
@@ -286,22 +286,26 @@
         ?Math.min(frames-1,Math.floor(elapsed*fps))
         :Math.floor(elapsed*fps)%frames;
       const row=Math.max(0,Math.min(3,m.dir|0)),size=sp.frame;
+      // Os frames PNG são 64/80 px de origem, mas no mundo de tiles de 32 px
+      // cada criatura deve ocupar visualmente ~1,2 a 1,6 tiles, não 2 a 2,5.
+      // drawSize altera SOMENTE a apresentação; hitbox/IA permanecem iguais.
+      const drawSize=sp.drawSize;
       ctx.save();ctx.imageSmoothingEnabled=false;
       ctx.drawImage(animation.image,column*size,row*size,size,size,
-        Math.round(m.x-size/2),Math.round(m.y-size*.76),size,size);
+        Math.round(m.x-drawSize/2),Math.round(m.y-drawSize*.76),drawSize,drawSize);
       ctx.restore();
     }else{
       // Fallback somente se o PNG estiver ausente ou incompatível.
       ctx.save();if(dead)ctx.globalAlpha=.42;fallback(m);ctx.restore();
     }
     if(m.health>0&&m.health<m.maxHealth){
-      const x=Math.round(m.x),y=Math.round(m.y-29);
-      ctx.fillStyle='#132127';ctx.fillRect(x-17,y,34,5);
-      ctx.fillStyle='#db7362';ctx.fillRect(x-16,y+1,32*m.health/m.maxHealth,3);
+      const width=Math.round(sp.drawSize*.65),x=Math.round(m.x),y=Math.round(m.y-sp.drawSize*.78);
+      ctx.fillStyle='#132127';ctx.fillRect(x-width/2-1,y,width+2,5);
+      ctx.fillStyle='#db7362';ctx.fillRect(x-width/2,y+1,width*m.health/m.maxHealth,3);
     }
     if(m.state==='prepare'&&m.health>0){
       ctx.fillStyle='#ffe18a';ctx.font='bold 13px monospace';
-      ctx.fillText('!',Math.round(m.x)-3,Math.round(m.y)-37);
+      ctx.fillText('!',Math.round(m.x)-3,Math.round(m.y-sp.drawSize*.78-10));
     }
     return true;
   }
@@ -313,7 +317,7 @@
       const x=Math.round(p.x),y=Math.round(p.y);
       if(info?.ready){
         const col=Math.floor(clock*12)%info.frames;
-        ctx.drawImage(info.image,col*frame,0,frame,frame,x-14,y-14,28,28);
+        ctx.drawImage(info.image,col*frame,0,frame,frame,x-8,y-8,16,16);
       }else{
         ctx.fillStyle=p.kind==='fire'?'#ef823e':p.kind==='wind'?'#9fd4dd':'#449c9f';
         ctx.fillRect(x-4,y-4,8,8);
@@ -327,7 +331,7 @@
       const dust=sprites.boar?.dust;
       if(dust?.ready){
         const col=Math.floor(clock*9)%dust.frames,size=SPECIES.boar.frame;
-        ctx.drawImage(dust.image,col*size,0,size,size,Math.round(m.x-20),Math.round(m.y-8),40,40);
+        ctx.drawImage(dust.image,col*size,0,size,size,Math.round(m.x-13),Math.round(m.y-4),26,26);
       }
     }
     for(const e of effects){ctx.fillStyle=e.kind==='fire'?'#ffb26c':'#b7edf0';ctx.fillRect(e.x-7,e.y-7,14,2);ctx.fillRect(e.x-4,e.y+4,8,2);}
