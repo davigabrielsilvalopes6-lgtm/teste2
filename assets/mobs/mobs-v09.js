@@ -1,7 +1,5 @@
 'use strict';
-/* ORIGENS 0.9 — mobs elementais. Add-on ao jogo 0.8.1, sem alterar saves v8.
- * Não representa sprites finais: usa pixel art provisória quando os PNGs não existem.
- */
+/* ORIGENS 0.9.1 — sprites aprovados pelo usuário e animações por estado. Mantém saves v8. */
 (() => {
   const SPECIES = Object.freeze({
     salamander: {name:'Salamandra Ígnea',element:3,hp:55,speed:55,detect:190,range:150,damage:12,near:8,attack:'fire',cooldown:2.5,radius:13,colour:'#b94b34',water:false,asset:'fire_salamander/salamandra_ignea_idle.png',frame:64,frames:4},
@@ -16,6 +14,15 @@
     serpent:[['escama_aquatica',1,3,1],['presa_serpente',1,1,.35],['glandula_pressao',1,1,.08]]
   }); // Registro de planejamento; NÃO gera drops antes da v0.10.
   const MAX_MOBS=9, SPAWN_INTERVAL=3.5, RESPAWN_DELAY=18, SAFE_RADIUS=210;
+  // Arquivos recortados das quatro pranchas aprovadas no pacote do usuário.
+  // Direções nas linhas: DOWN, UP, LEFT, RIGHT.
+  // A folha de cada estado contém 4 linhas, exceto projéteis e poeira (1 linha).
+  const ASSET_SHEETS = Object.freeze({
+    salamander:{path:'fire_salamander/',idle:['salamandra_ignea_idle.png',4],walk:['salamandra_ignea_walk.png',6],attack:['salamandra_ignea_fire_spit.png',6],melee:['salamandra_ignea_bite.png',4],hurt:['salamandra_ignea_hurt.png',2],death:['salamandra_ignea_death.png',5],projectile:['salamandra_ignea_fireball.png',4]},
+    boar:{path:'rock_boar/',idle:['javali_rochoso_idle.png',4],walk:['javali_rochoso_walk.png',6],attack:['javali_rochoso_charge.png',6],melee:['javali_rochoso_attack.png',4],hurt:['javali_rochoso_hurt.png',2],death:['javali_rochoso_death.png',5],dust:['poeira_carga.png',4]},
+    spirit:{path:'wind_spirit/',idle:['espirito_vento_idle.png',4],walk:['espirito_vento_walk.png',6],attack:['espirito_vento_attack.png',6],hurt:['espirito_vento_dano.png',2],death:['espirito_vento_morte.png',5],projectile:['projeteis_vento.png',4]},
+    serpent:{path:'river_serpent/',idle:['serpente_rios_idle.png',4],walk:['serpente_rios_walk.png',6],attack:['serpente_rios_ataque_agua.png',6],hurt:['serpente_rios_dano.png',2],death:['serpente_rios_morte.png',5],projectile:['projetil_agua.png',6]}
+  });
   const sprites={};
   let game=null, clock=0, serial=0, spawnTime=0, projectiles=[], effects=[], respawnAfter=0;
   const random=()=>Math.random();
@@ -57,14 +64,16 @@
   function init(g){
     game=g;clock=0;serial=0;spawnTime=0;projectiles=[];effects=[];respawnAfter=0;
     for(const [species,sp] of Object.entries(SPECIES)){
-      const picture=new Image(); picture.decoding='async';
-      sprites[species]={image:picture,ready:false};
-      picture.onload=()=>{const spec=sprites[species];spec.ready=picture.naturalWidth>=sp.frame && picture.naturalHeight>=sp.frame*4;};
-      picture.onerror=()=>{sprites[species].ready=false;};
-      // Sem PNGs finais validados no repositório: não solicitar URLs inexistentes (404).
-      // Adicionar nomes a window.ORIGENS_MOB_SHEET_PATHS após auditar/exportar os sprites.
-      if(Array.isArray(window.ORIGENS_MOB_SHEET_PATHS)&&window.ORIGENS_MOB_SHEET_PATHS.includes(sp.asset))
-        picture.src='assets/mobs/'+sp.asset;
+      const definitions=ASSET_SHEETS[species],set=sprites[species]={};
+      for(const [state,details] of Object.entries(definitions)){
+        if(state==='path')continue;
+        const [file,frames]=details,picture=new Image(),animation={image:picture,frames,ready:false,state};
+        set[state]=animation;
+        picture.decoding='async';
+        picture.onload=()=>{animation.ready=picture.naturalWidth===sp.frame*frames&&picture.naturalHeight===sp.frame*(state==='projectile'||state==='dust'?1:4);};
+        picture.onerror=()=>{animation.ready=false;};
+        picture.src='assets/mobs/'+definitions.path+file;
+      }
     }
     game.mob09={version:1,active:0,defeated:0,projectileCount:0};
   }
@@ -254,18 +263,35 @@
     }
     ctx.restore();
   }
+  function spriteState(m){
+    if(m.health<=0)return 'death';
+    if(game.combat.clock<m.flashUntil)return 'hurt';
+    if(m.state==='attack'||m.state==='prepare')return 'attack';
+    if(m.state==='chase'||m.state==='return'||m.state==='wander')return 'walk';
+    return 'idle';
+  }
   function draw(m){
     if(!m.mobSpecies)return false;
     const sp=SPECIES[m.species];
     if(!sp)return false;
-    const asset=sprites[m.species],dead=m.health<=0;
-    if(asset&&asset.ready){
-      const sheet=asset.image,cols=Math.max(1,Math.floor(sheet.naturalWidth/sp.frame)),rows=Math.floor(sheet.naturalHeight/sp.frame);
-      const r=rows>=4?m.dir:0,c=Math.floor(clock*(m.state==='chase'?8:4))%Math.min(cols,sp.frames);
-      ctx.save();ctx.imageSmoothingEnabled=false;ctx.globalAlpha=dead?.45:1;
-      ctx.drawImage(sheet,c*sp.frame,r*sp.frame,sp.frame,sp.frame,Math.round(m.x-sp.frame/2),Math.round(m.y-sp.frame*.76),sp.frame,sp.frame);
+    const dead=m.health<=0,state=spriteState(m);
+    const asset=sprites[m.species],animation=asset&&asset[state];
+    if(animation&&animation.ready){
+      const frames=animation.frames;
+      let elapsed=clock, fps=state==='walk'?9:state==='idle'?5:state==='death'?8:state==='hurt'?12:11;
+      if(state==='death')elapsed=Math.max(0,clock-m.deadAt);
+      else if(state==='attack')elapsed=Math.max(0,clock-m.attackAt);
+      else if(state==='walk'||state==='idle')elapsed=m.clock;
+      const column=(state==='death'||state==='attack'||state==='hurt')
+        ?Math.min(frames-1,Math.floor(elapsed*fps))
+        :Math.floor(elapsed*fps)%frames;
+      const row=Math.max(0,Math.min(3,m.dir|0)),size=sp.frame;
+      ctx.save();ctx.imageSmoothingEnabled=false;
+      ctx.drawImage(animation.image,column*size,row*size,size,size,
+        Math.round(m.x-size/2),Math.round(m.y-size*.76),size,size);
       ctx.restore();
     }else{
+      // Fallback somente se o PNG estiver ausente ou incompatível.
       ctx.save();if(dead)ctx.globalAlpha=.42;fallback(m);ctx.restore();
     }
     if(m.health>0&&m.health<m.maxHealth){
@@ -280,13 +306,29 @@
     return true;
   }
   function drawProjectiles(){
-    ctx.save();
+    ctx.save();ctx.imageSmoothingEnabled=false;
     for(const p of projectiles){
+      const species=p.kind==='fire'?'salamander':p.kind==='wind'?'spirit':'serpent';
+      const info=sprites[species]?.projectile,frame=SPECIES[species].frame;
       const x=Math.round(p.x),y=Math.round(p.y);
-      ctx.fillStyle=p.kind==='fire'?'#ef823e':p.kind==='wind'?'#9fd4dd':'#449c9f';
-      ctx.fillRect(x-4,y-4,8,8);
-      ctx.fillStyle=p.kind==='fire'?'#ffe186':'#e2ffff';
-      ctx.fillRect(x-2,y-2,4,4);
+      if(info?.ready){
+        const col=Math.floor(clock*12)%info.frames;
+        ctx.drawImage(info.image,col*frame,0,frame,frame,x-14,y-14,28,28);
+      }else{
+        ctx.fillStyle=p.kind==='fire'?'#ef823e':p.kind==='wind'?'#9fd4dd':'#449c9f';
+        ctx.fillRect(x-4,y-4,8,8);
+        ctx.fillStyle=p.kind==='fire'?'#ffe186':'#e2ffff';
+        ctx.fillRect(x-2,y-2,4,4);
+      }
+    }
+    // Efeito de poeira extraído da prancha aprovada do javali.
+    for(const m of game.combat.targets){
+      if(m.species!=='boar'||m.state!=='attack'||m.health<=0)continue;
+      const dust=sprites.boar?.dust;
+      if(dust?.ready){
+        const col=Math.floor(clock*9)%dust.frames,size=SPECIES.boar.frame;
+        ctx.drawImage(dust.image,col*size,0,size,size,Math.round(m.x-20),Math.round(m.y-8),40,40);
+      }
     }
     for(const e of effects){ctx.fillStyle=e.kind==='fire'?'#ffb26c':'#b7edf0';ctx.fillRect(e.x-7,e.y-7,14,2);ctx.fillRect(e.x-4,e.y+4,8,2);}
     ctx.restore();
@@ -296,6 +338,6 @@
   update=function(dt,combatDt=dt){originalUpdate(dt,combatDt);updateMobs(dt);};
   drawCombatTarget=function(target){if(target.mobSpecies){api.draw(target);return;}originalDrawCombatTarget(target);};
   drawCombatWorld=function(){originalDrawCombatWorld();drawProjectiles();};
-  const api={definitions:SPECIES,plannedDrops:DROPS_V010,init,update:updateMobs,draw,spawn,ownerElement};
+  const api={definitions:SPECIES,assetSheets:ASSET_SHEETS,plannedDrops:DROPS_V010,init,update:updateMobs,draw,spawn,ownerElement};
   window.ORIGENS_MOBS_V09=api;
 })();
