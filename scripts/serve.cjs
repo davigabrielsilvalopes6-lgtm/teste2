@@ -6,9 +6,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const entry = 'ORIGENS — Survival v0.8.1.html';
+const entry = 'ORIGENS — Survival v0.9 Fauna Elemental.html';
 const documents = new Set([
   entry,
+  'ORIGENS — Survival v0.8.1.html',
   'ORIGENS — Survival v0.8 Combate.html',
   'ORIGENS — Survival v0.8.html',
   'ORIGENS — Survival v0.7.html',
@@ -41,7 +42,8 @@ const server = http.createServer((request, response) => {
   }
   // Keep the same URL and origin on reload; serve the original bytes unchanged.
   const filename = pathname === '/' ? entry : pathname.slice(1);
-  if (!documents.has(filename)) {
+  const isMobScript = filename === 'assets/mobs/mobs-v09.js';
+  if (!documents.has(filename) && !isMobScript) {
     response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     response.end('Não encontrado');
     return;
@@ -53,7 +55,7 @@ const server = http.createServer((request, response) => {
       return;
     }
     response.writeHead(200, {
-      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Type': isMobScript ? 'application/javascript; charset=utf-8' : 'text/html; charset=utf-8',
       'Content-Length': contents.length,
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
